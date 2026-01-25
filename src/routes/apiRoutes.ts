@@ -69,6 +69,13 @@ async function getLTCUSDTPrice(date: Date): Promise<number | null> {
  * GET /api/account-stats - Lấy daily stats với aggregation
  * Query params: startDate, endDate (ISO format: 2025-01-01)
  */
+
+function subtractOneDay(date: Date): Date {
+  const d = new Date(date); // clone, tránh mutate
+  d.setDate(d.getDate() - 1);
+  return d;
+}
+
 router.get(
   "/api/account-stats",
   requireAuth,
@@ -82,9 +89,12 @@ router.get(
 
       let startDate: Date | undefined;
       let endDate: Date | undefined;
+      let previousDate: Date | undefined;
 
       if (startDateStr) {
         startDate = new Date(startDateStr);
+        previousDate = subtractOneDay(startDate);
+        startDate = previousDate; // bắt đầu từ ngày trước đó để tính diff
       }
       if (endDateStr) {
         endDate = new Date(endDateStr);

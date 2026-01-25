@@ -1092,10 +1092,15 @@
           const date = new Date(d.date);
           return date.toISOString().split("T")[0];
         });
+        labels.shift(); // Remove first label (inaccurate)
         const earnedData = data.map((d) => d.earned);
+        earnedData.shift(); // Remove first element (inaccurate)
         const pendingData = data.map((d) => d.pending);
+        pendingData.shift(); // Remove first element (inaccurate)
         const totalData = data.map((d) => d.total);
+        totalData.shift(); // Remove first element (inaccurate)
         const actualReceivedVNDData = data.map((d) => (d.total * 0.8) * exchangeRate);
+        actualReceivedVNDData.shift(); // Remove first element (inaccurate)
 
         const ctx = document.getElementById("statsChart").getContext("2d");
 
@@ -1216,16 +1221,25 @@
           return date.toISOString().split("T")[0];
         });
 
-        // Calculate daily earnings (difference from previous day)
+        labels.shift(); // Remove first label (inaccurate)
+
         const dailyEarningsData = data.map((d, index) => {
-          if (index === 0) return d.earned; // First day = earned value itself
+          const currentDate = new Date(d.date);
+          if (currentDate.getDate() === 1) return d.earned;
+          if (index === 0) return d.earned; // First entry
           return d.earned - data[index - 1].earned;
         });
 
+        dailyEarningsData.shift();
+
         const dailyPendingData = data.map((d, index) => {
-          if (index === 0) return d.pending; // First day = pending value itself
+          const currentDate = new Date(d.date);
+
+          if (currentDate.getDate() === 1) return d.pending;
+          if (index === 0) return d.pending; // First entry
           return d.pending - data[index - 1].pending;
         });
+        dailyPendingData.shift(); // Remove first element (inaccurate)
 
         const dailyTotalData = dailyEarningsData.map(
           (earned, index) => earned + dailyPendingData[index]

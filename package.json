@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "ts-node-dev --respawn --exit-child --transpile-only src/index.ts"
+    "dev": "ts-node-dev --exit-child --transpile-only src/index.ts"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
