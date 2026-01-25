@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Input Daily Stats</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #f5f7fa;
+        color: #333;
+      }
+
+      header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      header h1 {
+        font-size: 24px;
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .logout-btn {
+        background: white;
+        color: #667eea;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background 0.3s;
+      }
+
+      .logout-btn:hover {
+        background: #f0f0f0;
+      }
+
+      main {
+        max-width: 600px;
+        margin: 40px auto;
+        padding: 0 20px;
+      }
+
+      .breadcrumb {
+        margin-bottom: 20px;
+      }
+
+      .breadcrumb a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .breadcrumb a:hover {
+        text-decoration: underline;
+      }
+
+      .form-container {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .form-container h2 {
+        margin-bottom: 25px;
+        color: #333;
+        font-size: 22px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #555;
+        font-size: 14px;
+        text-transform: uppercase;
+      }
+
+      .form-group input,
+      .form-group select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+      }
+
+      .submit-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 30px;
+      }
+
+      .btn {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s;
+        font-size: 14px;
+      }
+
+      .btn-primary {
+        background: #667eea;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #764ba2;
+      }
+
+      .btn-secondary {
+        background: #e0e0e0;
+        color: #333;
+      }
+
+      .btn-secondary:hover {
+        background: #d0d0d0;
+      }
+
+      .alert {
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+      }
+
+      .alert-success {
+        background: #c8e6c9;
+        color: #2e7d32;
+        border: 1px solid #81c784;
+      }
+
+      .alert-error {
+        background: #ffcdd2;
+        color: #c62828;
+        border: 1px solid #e57373;
+      }
+
+      .alert-info {
+        background: #bbdefb;
+        color: #1565c0;
+        border: 1px solid #64b5f6;
+      }
+
+      .loading {
+        display: none;
+        text-align: center;
+        padding: 10px;
+        color: #667eea;
+        font-weight: bold;
+      }
+
+      .loading.active {
+        display: block;
+      }
+
+      .stats-preview {
+        background: #f9f9f9;
+        padding: 15px;
+        border-radius: 5px;
+        margin-top: 20px;
+        border-left: 4px solid #667eea;
+      }
+
+      .stats-preview h3 {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+      }
+
+      .stats-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+        font-size: 14px;
+      }
+
+      .stats-row:last-child {
+        border-bottom: none;
+      }
+
+      .stats-label {
+        color: #999;
+        font-weight: 500;
+      }
+
+      .stats-value {
+        color: #667eea;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>📊 Input Daily Stats</h1>
+      <div style="display: flex; gap: 30px; align-items: center;">
+        <nav style="display: flex; gap: 20px;">
+          <a href="/dashboard" style="color: white; text-decoration: none; font-weight: 500;">Dashboard</a>
+          <a href="/stats" style="color: white; text-decoration: none; font-weight: 500;">Manage Stats</a>
+          <a href="/input-stats" style="color: white; text-decoration: none; font-weight: 500;">Input Stats</a>
+        </nav>
+        <div class="user-info">
+          <span><%= user.name %></span>
+          <form action="/logout" method="POST" style="margin: 0;">
+            <button class="logout-btn" type="submit">Logout</button>
+          </form>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="breadcrumb">
+        <a href="/dashboard">← Back to Dashboard</a>
+      </div>
+
+      <div class="form-container">
+        <h2>Add Daily Stats</h2>
+
+        <div id="alertContainer"></div>
+
+        <form id="statsForm">
+          <div class="form-group">
+            <label for="accountSelect">Account *</label>
+            <select id="accountSelect" required>
+              <option value="">-- Select Account --</option>
+              <% accounts.forEach(function(account) { %>
+              <option value="<%= account.id %>"><%= account.name %> (<%= account.ltcAddress.substring(0, 15) %>...)</option>
+              <% }); %>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="dateInput">Date *</label>
+            <input type="date" id="dateInput" required />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="earnedInput">Earned (USD) *</label>
+              <input
+                type="number"
+                id="earnedInput"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="pendingInput">Pending (USD) *</label>
+              <input
+                type="number"
+                id="pendingInput"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="stats-preview" style="display: none;" id="preview">
+            <h3>Preview</h3>
+            <div class="stats-row">
+              <span class="stats-label">Total:</span>
+              <span class="stats-value" id="previewTotal">$0.00</span>
+            </div>
+            <div class="stats-row">
+              <span class="stats-label">Account:</span>
+              <span class="stats-value" id="previewAccount">-</span>
+            </div>
+            <div class="stats-row">
+              <span class="stats-label">Date:</span>
+              <span class="stats-value" id="previewDate">-</span>
+            </div>
+          </div>
+
+          <div class="submit-group">
+            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="reset" class="btn btn-secondary">Clear</button>
+          </div>
+
+          <div class="loading" id="loading">Submitting...</div>
+        </form>
+      </div>
+    </main>
+
+    <script>
+      const form = document.getElementById("statsForm");
+      const accountSelect = document.getElementById("accountSelect");
+      const dateInput = document.getElementById("dateInput");
+      const earnedInput = document.getElementById("earnedInput");
+      const pendingInput = document.getElementById("pendingInput");
+      const alertContainer = document.getElementById("alertContainer");
+      const loading = document.getElementById("loading");
+      const preview = document.getElementById("preview");
+
+      // Set today as default date
+      const today = new Date().toISOString().split("T")[0];
+      dateInput.value = today;
+
+      // Update preview on input change
+      function updatePreview() {
+        const earned = parseFloat(earnedInput.value) || 0;
+        const pending = parseFloat(pendingInput.value) || 0;
+        const total = earned + pending;
+        const selectedOption = accountSelect.options[accountSelect.selectedIndex];
+        const accountName = selectedOption.text || "-";
+        const date = dateInput.value || "-";
+
+        document.getElementById("previewTotal").textContent =
+          "$" + total.toFixed(2);
+        document.getElementById("previewAccount").textContent = accountName;
+        document.getElementById("previewDate").textContent = date;
+
+        if (accountSelect.value && dateInput.value) {
+          preview.style.display = "block";
+        } else {
+          preview.style.display = "none";
+        }
+      }
+
+      accountSelect.addEventListener("change", updatePreview);
+      dateInput.addEventListener("change", updatePreview);
+      earnedInput.addEventListener("input", updatePreview);
+      pendingInput.addEventListener("input", updatePreview);
+
+      // Show alert
+      function showAlert(message, type = "info") {
+        const alert = document.createElement("div");
+        alert.className = `alert alert-${type}`;
+        alert.textContent = message;
+        alertContainer.innerHTML = "";
+        alertContainer.appendChild(alert);
+
+        if (type === "success") {
+          setTimeout(() => {
+            alert.remove();
+          }, 3000);
+        }
+      }
+
+      // Form submission
+      form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const accountId = parseInt(accountSelect.value);
+        const date = dateInput.value;
+        const earned = parseFloat(earnedInput.value);
+        const pending = parseFloat(pendingInput.value);
+
+        if (!accountId || !date || isNaN(earned) || isNaN(pending)) {
+          showAlert("Please fill all required fields", "error");
+          return;
+        }
+
+        loading.classList.add("active");
+
+        try {
+          const response = await fetch("/api/daily-stats", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              accountId,
+              date,
+              earned,
+              pending,
+            }),
+          });
+
+          if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.error || "Failed to save stats");
+          }
+
+          const result = await response.json();
+          showAlert(
+            result.message +
+              " - Earned: " +
+              earned.toFixed(8) +
+              " LTC, Pending: " +
+              pending.toFixed(8) +
+              " LTC",
+            "success"
+          );
+          form.reset();
+          dateInput.value = today;
+          preview.style.display = "none";
+        } catch (error) {
+          showAlert("Error: " + error.message, "error");
+        } finally {
+          loading.classList.remove("active");
+        }
+      });
+    </script>
+  </body>
+</html>

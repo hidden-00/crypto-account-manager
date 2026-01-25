@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Account Details - <%= account.name %></title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #f5f7fa;
+        color: #333;
+      }
+
+      header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      header h1 {
+        font-size: 24px;
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .logout-btn {
+        background: white;
+        color: #667eea;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background 0.3s;
+      }
+
+      .logout-btn:hover {
+        background: #f0f0f0;
+      }
+
+      main {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 0 20px;
+      }
+
+      .breadcrumb {
+        margin-bottom: 20px;
+      }
+
+      .breadcrumb a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .breadcrumb a:hover {
+        text-decoration: underline;
+      }
+
+      .account-header {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+      }
+
+      .account-header h2 {
+        font-size: 28px;
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      .account-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+      }
+
+      .info-card {
+        background: #f9f9f9;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+      }
+
+      .info-label {
+        font-weight: 600;
+        color: #666;
+        font-size: 12px;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+
+      .info-value {
+        font-size: 16px;
+        color: #333;
+        word-break: break-all;
+      }
+
+      .verified-badge {
+        display: inline-block;
+        background: #4caf50;
+        color: white;
+        padding: 5px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        margin-top: 10px;
+      }
+
+      .unverified-badge {
+        display: inline-block;
+        background: #ff9800;
+        color: white;
+        padding: 5px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        margin-top: 10px;
+      }
+
+      .transactions-section {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+      }
+
+      .transactions-section h3 {
+        font-size: 22px;
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+      }
+
+      .stat-box {
+        background: #f9f9f9;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+      }
+
+      .stat-label {
+        font-size: 12px;
+        color: #999;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+
+      .stat-value {
+        font-size: 18px;
+        font-weight: bold;
+        color: #667eea;
+      }
+
+      .transactions-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      .transactions-table th {
+        background: #f5f5f5;
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        color: #666;
+        border-bottom: 2px solid #ddd;
+      }
+
+      .transactions-table td {
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+      }
+
+      .transactions-table tr:hover {
+        background: #f9f9f9;
+      }
+
+      .txid {
+        font-family: monospace;
+        font-size: 12px;
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .status-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: bold;
+      }
+
+      .confirmed {
+        background: #c8e6c9;
+        color: #2e7d32;
+      }
+
+      .unconfirmed {
+        background: #fff9c4;
+        color: #f57f17;
+      }
+
+      .direction-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: bold;
+      }
+
+      .received {
+        background: #e3f2fd;
+        color: #1565c0;
+      }
+
+      .sent {
+        background: #ffe0e0;
+        color: #c62828;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+      }
+
+      .error {
+        background: #ffebee;
+        color: #c62828;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>💰 Account Details</h1>
+      <div style="display: flex; gap: 30px; align-items: center;">
+        <nav style="display: flex; gap: 20px;">
+          <a href="/dashboard" style="color: white; text-decoration: none; font-weight: 500;">Dashboard</a>
+          <a href="/stats" style="color: white; text-decoration: none; font-weight: 500;">Manage Stats</a>
+          <a href="/input-stats" style="color: white; text-decoration: none; font-weight: 500;">Input Stats</a>
+        </nav>
+        <div class="user-info">
+          <span><%= user.name %></span>
+          <form action="/logout" method="POST" style="margin: 0;">
+            <button class="logout-btn" type="submit">Logout</button>
+          </form>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="breadcrumb">
+        <a href="/dashboard">← Back to Dashboard</a>
+      </div>
+
+      <div class="account-header">
+        <h2><%= account.name %></h2>
+
+        <div class="account-info-grid">
+          <div class="info-card">
+            <div class="info-label">Account ID</div>
+            <div class="info-value"><%= account.id %></div>
+          </div>
+
+          <div class="info-card">
+            <div class="info-label">LTC Address</div>
+            <div class="info-value"><%= account.ltcAddress %></div>
+          </div>
+
+          <div class="info-card">
+            <div class="info-label">Created Date</div>
+            <div class="info-value"><%=
+            new Date(account.createdAt).toLocaleDateString() %></div>
+          </div>
+
+          <div class="info-card">
+            <div class="info-label">Status</div>
+            <div>
+              <% if (account.verifiedAt) { %>
+              <span class="verified-badge">✓ Verified</span>
+              <% } else { %>
+              <span class="unverified-badge">⏳ Pending</span>
+              <% } %>
+            </div>
+          </div>
+
+          <% if (account.verifiedAt) { %>
+          <div class="info-card">
+            <div class="info-label">Verified Date</div>
+            <div class="info-value"><%=
+            new Date(account.verifiedAt).toLocaleDateString() %></div>
+          </div>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="transactions-section">
+        <h3>📋 Transaction History</h3>
+
+        <div id="transaction-stats" class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-label">Total Received</div>
+            <div class="stat-value" id="stat-received">-</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Total Sent</div>
+            <div class="stat-value" id="stat-sent">-</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Current Balance</div>
+            <div class="stat-value" id="stat-balance">-</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Transactions</div>
+            <div class="stat-value" id="stat-txcount">-</div>
+          </div>
+        </div>
+
+        <div id="transactions-container">
+          <div class="loading">Loading transactions...</div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      async function loadTransactions() {
+        try {
+          const accountId = '<%= account.id %>';
+          const response = await fetch(
+            `/api/accounts/${accountId}/transactions`
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch transactions");
+          }
+
+          const data = await response.json();
+          displayTransactions(data);
+        } catch (error) {
+          console.error("Error:", error);
+          document.getElementById("transactions-container").innerHTML =
+            `<div class="error">Failed to load transactions: ${error.message}</div>`;
+        }
+      }
+
+      function displayTransactions(data) {
+        // Update stats
+        document.getElementById("stat-received").textContent = (
+          data.totalReceived / 1e8
+        ).toFixed(8);
+        document.getElementById("stat-sent").textContent = (
+          data.totalSent / 1e8
+        ).toFixed(8);
+        document.getElementById("stat-balance").textContent = (
+          data.finalBalance / 1e8
+        ).toFixed(8);
+        document.getElementById("stat-txcount").textContent = data.txCount;
+
+        // Display transactions
+        const container = document.getElementById("transactions-container");
+
+        if (!data.transactions || data.transactions.length === 0) {
+          container.innerHTML =
+            '<div class="empty-state">No transactions found for this address</div>';
+          return;
+        }
+
+        let html = `
+          <table class="transactions-table">
+            <thead>
+              <tr>
+                <th>Transaction ID</th>
+                <th>Date</th>
+                <th>Direction</th>
+                <th>Amount (LTC)</th>
+                <th>Confirmations</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        data.transactions.forEach((tx) => {
+          const date = new Date(tx.confirmed);
+          const statusClass = tx.confirmations > 0 ? "confirmed" : "unconfirmed";
+          const statusText = tx.confirmations > 0 ? "Confirmed" : "Unconfirmed";
+          const amount = tx.amountLTC.toFixed(8);
+          const directionText = tx.direction === "received" ? "Received" : "Sent";
+          const directionClass = tx.direction;
+
+          html += `
+            <tr>
+              <td><div class="txid" title="${tx.txid}">${tx.txid}</div></td>
+              <td>${date.toLocaleDateString()} ${date.toLocaleTimeString()}</td>
+              <td><span class="direction-badge ${directionClass}">${directionText}</span></td>
+              <td>${amount}</td>
+              <td>${tx.confirmations}</td>
+              <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+            </tr>
+          `;
+        });
+
+        html += `
+            </tbody>
+          </table>
+        `;
+
+        container.innerHTML = html;
+      }
+
+      // Load transactions on page load
+      document.addEventListener("DOMContentLoaded", loadTransactions);
+    </script>
+  </body>
+</html>

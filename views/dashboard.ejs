@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Account Stats</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #f5f7fa;
+        color: #333;
+      }
+
+      header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      header h1 {
+        font-size: 24px;
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .logout-btn {
+        background: white;
+        color: #667eea;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background 0.3s;
+      }
+
+      .logout-btn:hover {
+        background: #f0f0f0;
+      }
+
+      main {
+        max-width: 1400px;
+        margin: 30px auto;
+        padding: 0 20px;
+      }
+
+      .filters-section {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+      }
+
+      .filters-section h2 {
+        font-size: 18px;
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      .filter-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .filter-item {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .filter-item label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: #555;
+      }
+
+      .filter-item input {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+      }
+
+      .filter-item input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+      }
+
+      .button-group {
+        display: flex;
+        gap: 10px;
+      }
+
+      .btn {
+        padding: 10px 25px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s;
+        font-size: 14px;
+      }
+
+      .btn-primary {
+        background: #667eea;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #764ba2;
+      }
+
+      .btn-secondary {
+        background: #e0e0e0;
+        color: #333;
+      }
+
+      .btn-secondary:hover {
+        background: #d0d0d0;
+      }
+
+      .stats-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        border-top: 4px solid #667eea;
+      }
+
+      .stat-card h3 {
+        font-size: 14px;
+        color: #999;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+      }
+
+      .stat-card .value {
+        font-size: 28px;
+        font-weight: bold;
+        color: #667eea;
+      }
+
+      .stat-card.earned {
+        border-top-color: #4caf50;
+      }
+
+      .stat-card.earned .value {
+        color: #4caf50;
+      }
+
+      .stat-card.pending {
+        border-top-color: #ff9800;
+      }
+
+      .stat-card.pending .value {
+        color: #ff9800;
+      }
+
+      .stat-card.total {
+        border-top-color: #2196f3;
+      }
+
+      .stat-card.total .value {
+        color: #2196f3;
+      }
+
+      .chart-section {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+      }
+
+      .chart-section h2 {
+        font-size: 18px;
+        margin-bottom: 25px;
+        color: #333;
+      }
+
+      .chart-container {
+        position: relative;
+        height: 400px;
+      }
+
+      .error {
+        background: #ffebee;
+        color: #c62828;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+      }
+
+      .user-profile {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+      }
+
+      .user-profile h2 {
+        font-size: 18px;
+        margin-bottom: 15px;
+        color: #333;
+      }
+
+      .user-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+      }
+
+      .detail-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+      }
+
+      .detail-item:last-child {
+        border-bottom: none;
+      }
+
+      .detail-label {
+        font-weight: 600;
+        color: #666;
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+
+      .detail-value {
+        font-size: 16px;
+        color: #333;
+        margin-top: 5px;
+      }
+
+      .accounts-section {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+      }
+
+      .accounts-section h2 {
+        font-size: 18px;
+        margin-bottom: 20px;
+        color: #333;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .add-account-btn {
+        background: #4caf50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        transition: background 0.3s;
+      }
+
+      .add-account-btn:hover {
+        background: #45a049;
+      }
+
+      .accounts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
+      }
+
+      .account-card {
+        background: #f9f9f9;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+        cursor: pointer;
+        transition: all 0.3s;
+        position: relative;
+      }
+
+      .account-card:hover {
+        background: #f0f0f0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+      }
+
+      .account-card h3 {
+        font-size: 16px;
+        margin-bottom: 10px;
+        color: #333;
+      }
+
+      .account-card-info {
+        font-size: 13px;
+        color: #666;
+        margin: 8px 0;
+      }
+
+      .verified-badge {
+        display: inline-block;
+        background: #4caf50;
+        color: white;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: bold;
+        margin-top: 8px;
+      }
+
+      .unverified-badge {
+        display: inline-block;
+        background: #ff9800;
+        color: white;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: bold;
+        margin-top: 8px;
+      }
+
+      .account-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid #ddd;
+      }
+
+      .action-btn {
+        flex: 1;
+        padding: 6px 10px;
+        border: none;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      .view-btn {
+        background: #2196f3;
+        color: white;
+      }
+
+      .view-btn:hover {
+        background: #1976d2;
+      }
+
+      .edit-btn {
+        background: #ff9800;
+        color: white;
+      }
+
+      .edit-btn:hover {
+        background: #f57c00;
+      }
+
+      .verify-btn {
+        background: #4caf50;
+        color: white;
+      }
+
+      .verify-btn:hover {
+        background: #45a049;
+      }
+
+      .delete-btn {
+        background: #f44336;
+        color: white;
+      }
+
+      .delete-btn:hover {
+        background: #da190b;
+      }
+
+      /* Modal Styles */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+
+      .modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-content {
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        max-width: 500px;
+        width: 90%;
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .modal-header h2 {
+        font-size: 20px;
+        color: #333;
+      }
+
+      .close-btn {
+        background: none;
+        border: none;
+        font-size: 28px;
+        cursor: pointer;
+        color: #999;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: #333;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+      }
+
+      .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .form-actions button {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      .btn-save {
+        background: #4caf50;
+        color: white;
+      }
+
+      .btn-save:hover {
+        background: #45a049;
+      }
+
+      .btn-cancel {
+        background: #999;
+        color: white;
+      }
+
+      .btn-cancel:hover {
+        background: #777;
+      }
+
+      .alert {
+        padding: 12px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+        display: none;
+      }
+
+      .alert.show {
+        display: block;
+      }
+
+      .alert-success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      .alert-error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+
+      /* Delete Confirmation Modal */
+      .delete-modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        justify-content: center;
+        align-items: center;
+      }
+
+      .delete-modal.show {
+        display: flex;
+      }
+
+      .delete-modal-content {
+        background: white;
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        max-width: 500px;
+        width: 90%;
+        animation: slideUp 0.3s ease-out;
+      }
+
+      @keyframes slideUp {
+        from {
+          transform: translateY(30px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .delete-modal-icon {
+        font-size: 60px;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .delete-modal-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+
+      .delete-modal-message {
+        font-size: 16px;
+        color: #666;
+        margin-bottom: 30px;
+        text-align: center;
+        line-height: 1.6;
+      }
+
+      .delete-modal-buttons {
+        display: flex;
+        gap: 12px;
+      }
+
+      .delete-confirm-btn {
+        flex: 1;
+        padding: 12px;
+        background: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 16px;
+      }
+
+      .delete-confirm-btn:hover {
+        background: #bb2d3b;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+      }
+
+      .delete-cancel-btn {
+        flex: 1;
+        padding: 12px;
+        background: #e9ecef;
+        color: #333;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 16px;
+      }
+
+      .delete-cancel-btn:hover {
+        background: #dee2e6;
+        border-color: #adb5bd;
+        transform: translateY(-2px);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>💰 Account Management Dashboard</h1>
+      <div style="display: flex; gap: 30px; align-items: center;">
+        <nav style="display: flex; gap: 20px;">
+          <a href="/dashboard" style="color: white; text-decoration: none; font-weight: 500;">Dashboard</a>
+          <a href="/stats" style="color: white; text-decoration: none; font-weight: 500;">Manage Stats</a>
+          <a href="/input-stats" style="color: white; text-decoration: none; font-weight: 500;">Input Stats</a>
+        </nav>
+        <div class="user-info">
+          <span><%= user.name %> (<%= user.email %>)</span>
+          <form action="/logout" method="POST" style="margin: 0;">
+            <button class="logout-btn" type="submit">Logout</button>
+          </form>
+        </div>
+      </div>
+    </header>
+
+    <!-- Add/Edit Account Modal -->
+    <div id="accountModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modalTitle">Add New Account</h2>
+          <button class="close-btn" onclick="closeAccountModal()">&times;</button>
+        </div>
+        <div id="modalAlert" class="alert"></div>
+        <form id="accountForm">
+          <div class="form-group">
+            <label for="accountName">Account Name *</label>
+            <input type="text" id="accountName" placeholder="e.g., My LTC Wallet" required />
+          </div>
+          <div class="form-group">
+            <label for="ltcAddress">LTC Address *</label>
+            <input type="text" id="ltcAddress" placeholder="e.g., ltc1q..." required />
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-save">Save Account</button>
+            <button type="button" class="btn-cancel" onclick="closeAccountModal()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <main>
+      <div class="user-profile">
+        <h2>👤 Profile</h2>
+        <div class="user-details">
+          <div class="detail-item">
+            <div class="detail-label">Name</div>
+            <div class="detail-value"><%= user.name %></div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Email</div>
+            <div class="detail-value"><%= user.email %></div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Role</div>
+            <div class="detail-value"><%= user.role %></div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Member Since</div>
+            <div class="detail-value"><%=
+            new Date(user.createdAt).toLocaleDateString() %></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="filters-section">
+        <h2>📊 Filter Data</h2>
+        <div class="filter-group">
+          <div class="filter-item">
+            <label for="startDate">Start Date:</label>
+            <input type="date" id="startDate" />
+          </div>
+          <div class="filter-item">
+            <label for="endDate">End Date:</label>
+            <input type="date" id="endDate" />
+          </div>
+        </div>
+        <div class="button-group">
+          <button class="btn btn-primary" onclick="loadChartData()">
+            Apply Filter
+          </button>
+          <button class="btn btn-secondary" onclick="resetFilter()">
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <div id="stats-cards-container" class="stats-cards"></div>
+
+      <div class="accounts-section">
+        <h2>
+          📋 Your Accounts
+          <button class="add-account-btn" onclick="openAccountModal()">+ Add Account</button>
+        </h2>
+        <div id="accounts-container" class="accounts-grid">
+          <p style="color: #999;">Loading accounts...</p>
+        </div>
+      </div>
+
+      <div class="chart-section">
+        <h2>📈 Daily Cash Flow (All Accounts)</h2>
+        <div class="chart-container">
+          <canvas id="statsChart"></canvas>
+        </div>
+      </div>
+    </main>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="delete-modal" onclick="if(event.target.id === 'deleteModal') cancelDelete()">
+      <div class="delete-modal-content">
+        <div class="delete-modal-icon">⚠️</div>
+        <div class="delete-modal-title">Delete Account?</div>
+        <div class="delete-modal-message">
+          <p id="deleteMessage"></p>
+          <p style="margin-top: 10px; font-size: 14px; color: #999;">This will also delete all associated daily stats.</p>
+        </div>
+        <div class="delete-modal-buttons">
+          <button class="delete-cancel-btn" onclick="cancelDelete()">Cancel</button>
+          <button class="delete-confirm-btn" onclick="confirmDelete()">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let chart = null;
+
+      // Set default dates (last 30 days)
+      function initDefaultDates() {
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+
+        document.getElementById("startDate").valueAsDate = startDate;
+        document.getElementById("endDate").valueAsDate = endDate;
+      }
+
+      // Load chart data from API
+      async function loadChartData() {
+        const startDate = document.getElementById("startDate").value;
+        const endDate = document.getElementById("endDate").value;
+
+        if (!startDate || !endDate) {
+          alert("Please select both start and end dates");
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            `/api/account-stats?startDate=${startDate}&endDate=${endDate}`
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch data");
+          }
+
+          const result = await response.json();
+          updateChart(result.data);
+          updateStatsCards(result.data);
+        } catch (error) {
+          console.error("Error:", error);
+          alert("Failed to load data");
+        }
+      }
+
+      // Update stats cards
+      function updateStatsCards(data) {
+        const container = document.getElementById("stats-cards-container");
+        container.innerHTML = "";
+
+        if (data.length === 0) {
+          container.innerHTML =
+            '<div class="error">No data available for selected date range</div>';
+          return;
+        }
+
+        const totalEarned = data.reduce((sum, d) => sum + d.earned, 0);
+        const totalPending = data.reduce((sum, d) => sum + d.pending, 0);
+        const totalAll = totalEarned + totalPending;
+        const avgDaily = totalAll / data.length;
+
+        const html = `
+          <div class="stat-card earned">
+            <h3>Total Earned</h3>
+            <div class="value">$${totalEarned.toFixed(2)}</div>
+          </div>
+          <div class="stat-card pending">
+            <h3>Total Pending</h3>
+            <div class="value">$${totalPending.toFixed(2)}</div>
+          </div>
+          <div class="stat-card total">
+            <h3>Total (Earned + Pending)</h3>
+            <div class="value">$${totalAll.toFixed(2)}</div>
+          </div>
+          <div class="stat-card">
+            <h3>Average Daily</h3>
+            <div class="value">$${avgDaily.toFixed(2)}</div>
+          </div>
+        `;
+        container.innerHTML = html;
+      }
+
+      // Update chart
+      function updateChart(data) {
+        const labels = data.map((d) => {
+          const date = new Date(d.date);
+          return date.toISOString().split("T")[0];
+        });
+        const earnedData = data.map((d) => d.earned);
+        const pendingData = data.map((d) => d.pending);
+        const totalData = data.map((d) => d.total);
+
+        const ctx = document.getElementById("statsChart").getContext("2d");
+
+        if (chart) {
+          chart.destroy();
+        }
+
+        chart = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Earned (USD)",
+                data: earnedData,
+                borderColor: "#4caf50",
+                backgroundColor: "rgba(76, 175, 80, 0.1)",
+                borderWidth: 2,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 4,
+                pointBackgroundColor: "#4caf50",
+              },
+              {
+                label: "Pending (USD)",
+                data: pendingData,
+                borderColor: "#ff9800",
+                backgroundColor: "rgba(255, 152, 0, 0.1)",
+                borderWidth: 2,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 4,
+                pointBackgroundColor: "#ff9800",
+              },
+              {
+                label: "Total (USD)",
+                data: totalData,
+                borderColor: "#2196f3",
+                backgroundColor: "rgba(33, 150, 243, 0.1)",
+                borderWidth: 2,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 4,
+                pointBackgroundColor: "#2196f3",
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "top",
+                labels: {
+                  usePointStyle: true,
+                  padding: 15,
+                },
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: "Amount (LTC)",
+                },
+              },
+              x: {
+                title: {
+                  display: true,
+                  text: "Date",
+                },
+              },
+            },
+          },
+        });
+      }
+
+      // Reset filter
+      function resetFilter() {
+        initDefaultDates();
+        loadChartData();
+      }
+
+      // Load accounts
+      async function loadAccounts() {
+        try {
+          const response = await fetch("/api/accounts");
+          if (!response.ok) throw new Error("Failed to fetch accounts");
+          const accounts = await response.json();
+          displayAccounts(accounts);
+        } catch (error) {
+          console.error("Error:", error);
+          document.getElementById("accounts-container").innerHTML =
+            '<p style="color: red;">Failed to load accounts</p>';
+        }
+      }
+
+      // Display accounts as cards with CRUD actions
+      function displayAccounts(accounts) {
+        console.log("Displaying accounts:", accounts);
+        const container = document.getElementById("accounts-container");
+        container.innerHTML = "";
+
+        if (accounts.length === 0) {
+          container.innerHTML = "<p>No accounts found. Click 'Add Account' to create one.</p>";
+          return;
+        }
+
+        accounts.forEach((account) => {
+          console.log("Account:", account, "ID:", account.id);
+          const badge = account.isVerified
+            ? `<span class="verified-badge">✓ Verified</span>`
+            : `<span class="unverified-badge">⏳ Pending</span>`;
+
+          const card = document.createElement("div");
+          card.className = "account-card";
+
+          card.innerHTML = `
+            <h3>${account.name}</h3>
+            <div class="account-card-info">
+              <strong>LTC:</strong> ${account.ltcAddress.substring(0, 15)}...
+            </div>
+            <div class="account-card-info">
+              <strong>Created:</strong> ${new Date(account.createdAt).toLocaleDateString()}
+            </div>
+            ${badge}
+            <div class="account-actions">
+              <button class="action-btn view-btn" onclick="viewAccount('${account.id}')">View</button>
+              <button class="action-btn edit-btn" onclick="editAccount('${account.id}', '${account.name}', '${account.ltcAddress}')">Edit</button>
+              ${!account.isVerified ? `<button class="action-btn verify-btn" onclick="verifyAccount('${account.id}', '${account.name}')">Verify</button>` : ''}
+              <button class="action-btn delete-btn" onclick="deleteAccount('${account.id}', '${account.name}')">Delete</button>
+            </div>
+          `;
+
+          container.appendChild(card);
+        });
+      }
+
+      // Open modal for adding new account
+      let currentEditId = null;
+      function openAccountModal(accountId = null) {
+        const modal = document.getElementById("accountModal");
+        const title = document.getElementById("modalTitle");
+        const form = document.getElementById("accountForm");
+        const nameInput = document.getElementById("accountName");
+        const addressInput = document.getElementById("ltcAddress");
+        
+        currentEditId = accountId;
+        
+        if (accountId) {
+          title.textContent = "Edit Account";
+        } else {
+          title.textContent = "Add New Account";
+          nameInput.value = "";
+          addressInput.value = "";
+        }
+        
+        modal.classList.add("show");
+      }
+
+      function closeAccountModal() {
+        document.getElementById("accountModal").classList.remove("show");
+        document.getElementById("accountForm").reset();
+        document.getElementById("modalAlert").classList.remove("show");
+        currentEditId = null;
+      }
+
+      // Handle account form submission
+      document.getElementById("accountForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const name = document.getElementById("accountName").value.trim();
+        const ltcAddress = document.getElementById("ltcAddress").value.trim();
+        const alert = document.getElementById("modalAlert");
+
+        try {
+          const method = currentEditId ? "PUT" : "POST";
+          const url = currentEditId 
+            ? `/api/accounts/${currentEditId}` 
+            : "/api/accounts";
+
+          const response = await fetch(url, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, ltcAddress }),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error || "Operation failed");
+          }
+
+          showAlert(alert, data.message || "Success!", "success");
+          setTimeout(() => {
+            closeAccountModal();
+            loadAccounts();
+          }, 1500);
+        } catch (error) {
+          showAlert(alert, error.message, "error");
+        }
+      });
+
+      // View account details
+      function viewAccount(accountId) {
+        window.location.href = `/accounts/${accountId}`;
+      }
+
+      // Edit account
+      function editAccount(accountId, name, ltcAddress) {
+        document.getElementById("accountName").value = name;
+        document.getElementById("ltcAddress").value = ltcAddress;
+        openAccountModal(accountId);
+      }
+
+      // Verify account
+      async function verifyAccount(accountId, accountName) {
+        try {
+          const response = await fetch(`/api/accounts/${accountId}/verify`, {
+            method: "PATCH",
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error || "Verification failed");
+          }
+
+          // Show success message
+          const alert = document.getElementById("modalAlert");
+          alert.textContent = `✓ ${accountName} verified successfully`;
+          alert.className = "alert show alert-success";
+          setTimeout(() => {
+            alert.classList.remove("show");
+          }, 3000);
+
+          loadAccounts();
+        } catch (error) {
+          console.error("Verify error:", error);
+          const alert = document.getElementById("modalAlert");
+          alert.textContent = "✗ Error: " + error.message;
+          alert.className = "alert show alert-error";
+        }
+      }
+
+      // Delete account - show confirmation modal
+      let deleteAccountId = null;
+      function deleteAccount(accountId, accountName) {
+        deleteAccountId = accountId;
+        document.getElementById("deleteMessage").innerHTML = `Are you sure you want to delete <strong>${accountName}</strong>?`;
+        document.getElementById("deleteModal").classList.add("show");
+      }
+
+      function cancelDelete() {
+        deleteAccountId = null;
+        document.getElementById("deleteModal").classList.remove("show");
+      }
+
+      async function confirmDelete() {
+        if (!deleteAccountId) {
+          console.error("deleteAccountId is null or undefined");
+          return;
+        }
+
+        const accountId = deleteAccountId;
+        const modal = document.getElementById("deleteModal");
+        const btn = document.querySelector(".delete-confirm-btn");
+        
+        console.log("Deleting account:", accountId);
+        
+        btn.textContent = "Deleting...";
+        btn.disabled = true;
+
+        try {
+          const response = await fetch(`/api/accounts/${accountId}`, {
+            method: "DELETE",
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error || "Delete failed");
+          }
+
+          modal.classList.remove("show");
+          deleteAccountId = null;
+          
+          // Show success message
+          const alert = document.getElementById("modalAlert");
+          alert.textContent = "✓ Account deleted successfully";
+          alert.className = "alert show alert-success";
+          setTimeout(() => {
+            alert.classList.remove("show");
+          }, 3000);
+          
+          loadAccounts();
+        } catch (error) {
+          console.error("Delete error:", error);
+          const alert = document.getElementById("modalAlert");
+          alert.textContent = "✗ Error: " + error.message;
+          alert.className = "alert show alert-error";
+        } finally {
+          btn.textContent = "Delete";
+          btn.disabled = false;
+        }
+      }
+
+      // Show alert message
+      function showAlert(element, message, type) {
+        element.textContent = message;
+        element.className = `alert show alert-${type}`;
+      }
+
+      // Initialize on page load
+      document.addEventListener("DOMContentLoaded", function () {
+        initDefaultDates();
+        loadChartData();
+        loadAccounts();
+        
+        // Close modal when clicking outside
+        document.getElementById("accountModal").addEventListener("click", (e) => {
+          if (e.target.id === "accountModal") {
+            closeAccountModal();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

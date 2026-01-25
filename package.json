@@ -1,0 +1,29 @@
+{
+  "name": "mike-express-ts",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev --respawn --exit-child --transpile-only src/index.ts"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "chart.js": "^4.5.1",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.2.3",
+    "ejs": "^3.1.10",
+    "express": "^4.18.2",
+    "mongoose": "^9.1.5"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express": "^4.17.17",
+    "@types/mongoose": "^5.11.96",
+    "@types/node": "^20.6.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.4.0"
+  }
+}
