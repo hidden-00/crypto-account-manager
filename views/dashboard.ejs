@@ -37,6 +37,22 @@
         gap: 15px;
       }
 
+      .edit-profile-btn {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid white;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background 0.3s;
+        margin-right: 10px;
+      }
+
+      .edit-profile-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+
       .logout-btn {
         background: white;
         color: #667eea;
@@ -395,6 +411,15 @@
         background: #45a049;
       }
 
+      .unverify-btn {
+        background: #f57c00;
+        color: white;
+      }
+
+      .unverify-btn:hover {
+        background: #e64a19;
+      }
+
       .delete-btn {
         background: #f44336;
         color: white;
@@ -636,6 +661,136 @@
         border-color: #adb5bd;
         transform: translateY(-2px);
       }
+
+      /* Profile Modal Styles */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-overlay.active {
+        display: flex;
+      }
+
+      .modal-content {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        width: 90%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        border-bottom: 1px solid #eee;
+      }
+
+      .modal-header h2 {
+        margin: 0;
+        font-size: 20px;
+        color: #333;
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #999;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 5px;
+        transition: background 0.3s;
+      }
+
+      .modal-close:hover {
+        background: #f5f5f5;
+        color: #333;
+      }
+
+      .modal-body {
+        padding: 20px;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 0;
+        border-bottom: 2px solid #eee;
+        margin-bottom: 20px;
+      }
+
+      .tab-btn {
+        background: none;
+        border: none;
+        padding: 12px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        color: #999;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s;
+      }
+
+      .tab-btn:hover {
+        color: #667eea;
+      }
+
+      .tab-btn.active {
+        color: #667eea;
+        border-bottom-color: #667eea;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+        font-size: 14px;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
     </style>
   </head>
   <body>
@@ -649,6 +804,7 @@
         </nav>
         <div class="user-info">
           <span><%= user.name %> (<%= user.email %>)</span>
+          <button class="edit-profile-btn" onclick="openProfileModal()">⚙️ Profile</button>
           <form action="/logout" method="POST" style="margin: 0;">
             <button class="logout-btn" type="submit">Logout</button>
           </form>
@@ -745,7 +901,66 @@
           <canvas id="statsChart"></canvas>
         </div>
       </div>
+
+      <div class="chart-section">
+        <h2>💰 Daily Earnings (Amount per Day)</h2>
+        <div class="chart-container">
+          <canvas id="dailyEarningsChart"></canvas>
+        </div>
+      </div>
     </main>
+
+    <!-- Profile Edit Modal -->
+    <div id="profileModal" class="modal-overlay" onclick="if(event.target.id === 'profileModal') closeProfileModal()">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Edit Profile</h2>
+          <button class="modal-close" onclick="closeProfileModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('info-tab')">Update Info</button>
+            <button class="tab-btn" onclick="switchTab('password-tab')">Change Password</button>
+          </div>
+
+          <!-- Update Info Tab -->
+          <div id="info-tab" class="tab-content active">
+            <form onsubmit="updateUserInfo(event)">
+              <div class="form-group">
+                <label for="editName">Name:</label>
+                <input type="text" id="editName" required />
+              </div>
+              <div class="form-group">
+                <label for="editEmail">Email:</label>
+                <input type="email" id="editEmail" required />
+              </div>
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+          </div>
+
+          <!-- Change Password Tab -->
+          <div id="password-tab" class="tab-content">
+            <form onsubmit="changePassword(event)">
+              <div class="form-group">
+                <label for="currentPassword">Current Password:</label>
+                <input type="password" id="currentPassword" required />
+              </div>
+              <div class="form-group">
+                <label for="newPassword">New Password:</label>
+                <input type="password" id="newPassword" required />
+              </div>
+              <div class="form-group">
+                <label for="confirmPassword">Confirm Password:</label>
+                <input type="password" id="confirmPassword" required />
+              </div>
+              <button type="submit" class="btn btn-primary">Change Password</button>
+            </form>
+          </div>
+
+          <div id="profileMessage" style="margin-top: 15px; text-align: center;"></div>
+        </div>
+      </div>
+    </div>
 
     <!-- Delete Confirmation Modal -->
     <div id="deleteModal" class="delete-modal" onclick="if(event.target.id === 'deleteModal') cancelDelete()">
@@ -765,6 +980,23 @@
 
     <script>
       let chart = null;
+      let dailyChart = null;
+      let exchangeRate = 25000; // Default VND/USD rate
+
+      // Fetch USD/VND exchange rate
+      async function getExchangeRate() {
+        try {
+          const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+          const data = await response.json();
+          if (data.rates && data.rates.VND) {
+            exchangeRate = data.rates.VND;
+            console.log('Exchange rate USD/VND:', exchangeRate);
+          }
+        } catch (error) {
+          console.error('Failed to fetch exchange rate:', error);
+          exchangeRate = 25000; // Use default if API fails
+        }
+      }
 
       // Set default dates (last 30 days)
       function initDefaultDates() {
@@ -787,6 +1019,7 @@
         }
 
         try {
+          await getExchangeRate(); // Get latest exchange rate
           const response = await fetch(
             `/api/account-stats?startDate=${startDate}&endDate=${endDate}`
           );
@@ -796,6 +1029,7 @@
 
           const result = await response.json();
           updateChart(result.data);
+          updateDailyEarningsChart(result.data);
           updateStatsCards(result.data);
         } catch (error) {
           console.error("Error:", error);
@@ -814,10 +1048,14 @@
           return;
         }
 
-        const totalEarned = data.reduce((sum, d) => sum + d.earned, 0);
-        const totalPending = data.reduce((sum, d) => sum + d.pending, 0);
+        // Earned and Pending are cumulative values - get the latest day's values
+        const latestDay = data[data.length - 1];
+        const totalEarned = latestDay.earned;
+        const totalPending = latestDay.pending;
         const totalAll = totalEarned + totalPending;
+        const totalActualReceived = totalAll * 0.8; // 80% of total
         const avgDaily = totalAll / data.length;
+        const avgActualReceivedVND = (avgDaily * 0.8) * exchangeRate;
 
         const html = `
           <div class="stat-card earned">
@@ -831,6 +1069,14 @@
           <div class="stat-card total">
             <h3>Total (Earned + Pending)</h3>
             <div class="value">$${totalAll.toFixed(2)}</div>
+          </div>
+          <div class="stat-card" style="border-top-color: #9c27b0;">
+            <h3>Actual Received (80%)</h3>
+            <div class="value" style="color: #9c27b0;">$${totalActualReceived.toFixed(2)}</div>
+          </div>
+          <div class="stat-card" style="border-top-color: #ff5722;">
+            <h3>Avg Actual Daily (VND)</h3>
+            <div class="value" style="color: #ff5722;">₫${avgActualReceivedVND.toLocaleString('vi-VN', {maximumFractionDigits: 0})}</div>
           </div>
           <div class="stat-card">
             <h3>Average Daily</h3>
@@ -849,6 +1095,7 @@
         const earnedData = data.map((d) => d.earned);
         const pendingData = data.map((d) => d.pending);
         const totalData = data.map((d) => d.total);
+        const actualReceivedVNDData = data.map((d) => (d.total * 0.8) * exchangeRate);
 
         const ctx = document.getElementById("statsChart").getContext("2d");
 
@@ -871,6 +1118,7 @@
                 fill: true,
                 pointRadius: 4,
                 pointBackgroundColor: "#4caf50",
+                yAxisID: "y",
               },
               {
                 label: "Pending (USD)",
@@ -882,6 +1130,7 @@
                 fill: true,
                 pointRadius: 4,
                 pointBackgroundColor: "#ff9800",
+                yAxisID: "y",
               },
               {
                 label: "Total (USD)",
@@ -893,12 +1142,151 @@
                 fill: true,
                 pointRadius: 4,
                 pointBackgroundColor: "#2196f3",
+                yAxisID: "y",
+              },
+              {
+                label: "Actual Received (VND)",
+                data: actualReceivedVNDData,
+                borderColor: "#ff5722",
+                backgroundColor: "rgba(255, 87, 34, 0.1)",
+                borderWidth: 2,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 4,
+                pointBackgroundColor: "#ff5722",
+                yAxisID: "y1",
               },
             ],
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: {
+              mode: "index",
+              intersect: false,
+            },
+            plugins: {
+              legend: {
+                position: "top",
+                labels: {
+                  usePointStyle: true,
+                  padding: 15,
+                },
+              },
+            },
+            scales: {
+              y: {
+                type: "linear",
+                display: true,
+                position: "left",
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: "Amount (USD)",
+                },
+              },
+              y1: {
+                type: "linear",
+                display: true,
+                position: "right",
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: "Amount (VND)",
+                },
+                grid: {
+                  drawOnChartArea: false,
+                },
+              },
+              x: {
+                title: {
+                  display: true,
+                  text: "Date",
+                },
+              },
+            },
+          },
+        });
+      }
+
+      // Update daily earnings chart
+      function updateDailyEarningsChart(data) {
+        const labels = data.map((d) => {
+          const date = new Date(d.date);
+          return date.toISOString().split("T")[0];
+        });
+
+        // Calculate daily earnings (difference from previous day)
+        const dailyEarningsData = data.map((d, index) => {
+          if (index === 0) return d.earned; // First day = earned value itself
+          return d.earned - data[index - 1].earned;
+        });
+
+        const dailyPendingData = data.map((d, index) => {
+          if (index === 0) return d.pending; // First day = pending value itself
+          return d.pending - data[index - 1].pending;
+        });
+
+        const dailyTotalData = dailyEarningsData.map(
+          (earned, index) => earned + dailyPendingData[index]
+        );
+
+        // Calculate daily actual received VND (80% of daily total)
+        const dailyActualReceivedVNDData = dailyTotalData.map(
+          (total) => total * 0.8 * exchangeRate
+        );
+
+        const ctx = document
+          .getElementById("dailyEarningsChart")
+          .getContext("2d");
+
+        if (dailyChart) {
+          dailyChart.destroy();
+        }
+
+        dailyChart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Daily Earned (USD)",
+                data: dailyEarningsData,
+                backgroundColor: "rgba(76, 175, 80, 0.7)",
+                borderColor: "#4caf50",
+                borderWidth: 1,
+                yAxisID: "y",
+              },
+              {
+                label: "Daily Pending (USD)",
+                data: dailyPendingData,
+                backgroundColor: "rgba(255, 152, 0, 0.7)",
+                borderColor: "#ff9800",
+                borderWidth: 1,
+                yAxisID: "y",
+              },
+              {
+                label: "Daily Total (USD)",
+                data: dailyTotalData,
+                backgroundColor: "rgba(33, 150, 243, 0.7)",
+                borderColor: "#2196f3",
+                borderWidth: 1,
+                yAxisID: "y",
+              },
+              {
+                label: "Daily Actual Received (VND)",
+                data: dailyActualReceivedVNDData,
+                backgroundColor: "rgba(255, 87, 34, 0.7)",
+                borderColor: "#ff5722",
+                borderWidth: 1,
+                yAxisID: "y1",
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: "x",
             plugins: {
               legend: {
                 position: "top",
@@ -911,9 +1299,21 @@
             scales: {
               y: {
                 beginAtZero: true,
+                position: "left",
                 title: {
                   display: true,
-                  text: "Amount (LTC)",
+                  text: "Amount (USD)",
+                },
+              },
+              y1: {
+                beginAtZero: true,
+                position: "right",
+                title: {
+                  display: true,
+                  text: "Amount (VND)",
+                },
+                grid: {
+                  drawOnChartArea: false,
                 },
               },
               x: {
@@ -979,7 +1379,7 @@
             <div class="account-actions">
               <button class="action-btn view-btn" onclick="viewAccount('${account.id}')">View</button>
               <button class="action-btn edit-btn" onclick="editAccount('${account.id}', '${account.name}', '${account.ltcAddress}')">Edit</button>
-              ${!account.isVerified ? `<button class="action-btn verify-btn" onclick="verifyAccount('${account.id}', '${account.name}')">Verify</button>` : ''}
+              ${!account.isVerified ? `<button class="action-btn verify-btn" onclick="verifyAccount('${account.id}', '${account.name}')">Verify</button>` : `<button class="action-btn unverify-btn" onclick="unverifyAccount('${account.id}', '${account.name}')">Unverify</button>`}
               <button class="action-btn delete-btn" onclick="deleteAccount('${account.id}', '${account.name}')">Delete</button>
             </div>
           `;
@@ -1094,6 +1494,36 @@
         }
       }
 
+      // Unverify account
+      async function unverifyAccount(accountId, accountName) {
+        try {
+          const response = await fetch(`/api/accounts/${accountId}/unverify`, {
+            method: "PATCH",
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error || "Unverification failed");
+          }
+
+          // Show success message
+          const alert = document.getElementById("modalAlert");
+          alert.textContent = `✓ ${accountName} unverified successfully`;
+          alert.className = "alert show alert-success";
+          setTimeout(() => {
+            alert.classList.remove("show");
+          }, 3000);
+
+          loadAccounts();
+        } catch (error) {
+          console.error("Unverify error:", error);
+          const alert = document.getElementById("modalAlert");
+          alert.textContent = "✗ Error: " + error.message;
+          alert.className = "alert show alert-error";
+        }
+      }
+
       // Delete account - show confirmation modal
       let deleteAccountId = null;
       function deleteAccount(accountId, accountName) {
@@ -1162,6 +1592,139 @@
         element.className = `alert show alert-${type}`;
       }
 
+      // Profile Modal Functions
+      function openProfileModal() {
+        const modal = document.getElementById("profileModal");
+        modal.classList.add("active");
+        
+        // Populate form with current user data
+        document.getElementById("editName").value = "<%= user.name %>";
+        document.getElementById("editEmail").value = "<%= user.email %>";
+        
+        // Reset password fields
+        document.getElementById("currentPassword").value = "";
+        document.getElementById("newPassword").value = "";
+        document.getElementById("confirmPassword").value = "";
+        
+        // Clear message
+        document.getElementById("profileMessage").textContent = "";
+      }
+
+      function closeProfileModal() {
+        const modal = document.getElementById("profileModal");
+        modal.classList.remove("active");
+      }
+
+      function switchTab(tabId) {
+        // Hide all tabs
+        document.querySelectorAll(".tab-content").forEach(tab => {
+          tab.classList.remove("active");
+        });
+        
+        // Remove active from all buttons
+        document.querySelectorAll(".tab-btn").forEach(btn => {
+          btn.classList.remove("active");
+        });
+        
+        // Show selected tab
+        document.getElementById(tabId).classList.add("active");
+        
+        // Add active to clicked button
+        event.target.classList.add("active");
+      }
+
+      async function updateUserInfo(event) {
+        event.preventDefault();
+        
+        const name = document.getElementById("editName").value;
+        const email = document.getElementById("editEmail").value;
+        const messageDiv = document.getElementById("profileMessage");
+        
+        try {
+          const response = await fetch("/api/user/update-info", {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ name, email }),
+          });
+          
+          const data = await response.json();
+          
+          if (response.ok) {
+            messageDiv.innerHTML = '<div class="alert alert-success">✓ Profile updated successfully</div>';
+            messageDiv.style.color = "green";
+            
+            // Reload page after 1 second
+            setTimeout(() => {
+              location.reload();
+            }, 1000);
+          } else {
+            messageDiv.innerHTML = `<div class="alert alert-error">✗ ${data.error}</div>`;
+            messageDiv.style.color = "red";
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          messageDiv.innerHTML = '<div class="alert alert-error">✗ Server error</div>';
+          messageDiv.style.color = "red";
+        }
+      }
+
+      async function changePassword(event) {
+        event.preventDefault();
+        
+        const currentPassword = document.getElementById("currentPassword").value;
+        const newPassword = document.getElementById("newPassword").value;
+        const confirmPassword = document.getElementById("confirmPassword").value;
+        const messageDiv = document.getElementById("profileMessage");
+        
+        if (newPassword !== confirmPassword) {
+          messageDiv.innerHTML = '<div class="alert alert-error">✗ Passwords do not match</div>';
+          messageDiv.style.color = "red";
+          return;
+        }
+        
+        if (newPassword.length < 6) {
+          messageDiv.innerHTML = '<div class="alert alert-error">✗ Password must be at least 6 characters</div>';
+          messageDiv.style.color = "red";
+          return;
+        }
+        
+        try {
+          const response = await fetch("/api/user/change-password", {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
+          });
+          
+          const data = await response.json();
+          
+          if (response.ok) {
+            messageDiv.innerHTML = '<div class="alert alert-success">✓ Password changed successfully</div>';
+            messageDiv.style.color = "green";
+            
+            // Clear fields
+            document.getElementById("currentPassword").value = "";
+            document.getElementById("newPassword").value = "";
+            document.getElementById("confirmPassword").value = "";
+            
+            // Close modal after 1.5 seconds
+            setTimeout(() => {
+              closeProfileModal();
+            }, 1500);
+          } else {
+            messageDiv.innerHTML = `<div class="alert alert-error">✗ ${data.error}</div>`;
+            messageDiv.style.color = "red";
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          messageDiv.innerHTML = '<div class="alert alert-error">✗ Server error</div>';
+          messageDiv.style.color = "red";
+        }
+      }
+
       // Initialize on page load
       document.addEventListener("DOMContentLoaded", function () {
         initDefaultDates();
@@ -1172,6 +1735,13 @@
         document.getElementById("accountModal").addEventListener("click", (e) => {
           if (e.target.id === "accountModal") {
             closeAccountModal();
+          }
+        });
+        
+      // Close profile modal when clicking outside
+        document.getElementById("profileModal").addEventListener("click", (e) => {
+          if (e.target.id === "profileModal") {
+            closeProfileModal();
           }
         });
       });

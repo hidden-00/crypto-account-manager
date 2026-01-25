@@ -383,7 +383,7 @@
       form.addEventListener("submit", async function (e) {
         e.preventDefault();
 
-        const accountId = parseInt(accountSelect.value);
+        const accountId = accountSelect.value;
         const date = dateInput.value;
         const earned = parseFloat(earnedInput.value);
         const pending = parseFloat(pendingInput.value);
@@ -392,6 +392,7 @@
           showAlert("Please fill all required fields", "error");
           return;
         }
+        console.log({ accountId, date, earned, pending });
 
         loading.classList.add("active");
 

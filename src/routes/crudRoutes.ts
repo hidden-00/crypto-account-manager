@@ -230,6 +230,62 @@ router.patch(
 );
 
 /**
+ * PATCH /api/accounts/:accountId/unverify - Unverify an account
+ */
+router.patch(
+  "/api/accounts/:accountId/unverify",
+  requireAuth,
+  async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const accountId = req.params.accountId;
+
+      // Validate MongoDB ObjectId
+      if (!mongoose.Types.ObjectId.isValid(accountId)) {
+        return res.status(400).json({ error: "Invalid accountId" });
+      }
+
+      // Check user owns this account
+      const account = await Account.findOne({
+        _id: accountId,
+        userId: userId,
+      });
+
+      if (!account) {
+        return res.status(404).json({ error: "Account not found" });
+      }
+
+      // Check if verified
+      if (!account.verifiedAt) {
+        return res.status(400).json({
+          error: "Account is not verified",
+        });
+      }
+
+      // Mark as unverified
+      account.verifiedAt = undefined;
+      await account.save();
+
+      return res.json({
+        success: true,
+        message: "Account unverified successfully",
+        data: {
+          _id: account._id.toString(),
+          name: account.name,
+          ltcAddress: account.ltcAddress,
+          createdAt: account.createdAt,
+          verifiedAt: account.verifiedAt,
+          isVerified: false,
+        },
+      });
+    } catch (error) {
+      console.error("Error unverifying account:", error);
+      return res.status(500).json({ error: "Server error" });
+    }
+  }
+);
+
+/**
  * GET /api/accounts - Get all accounts for authenticated user
  */
 router.get("/api/accounts", requireAuth, async (req: Request, res: Response) => {
@@ -345,7 +401,7 @@ router.post("/api/daily-stats", requireAuth, async (req: Request, res: Response)
 
 /**
  * PUT /api/daily-stats/:statId - Update daily stat
- * Body: { earned, pending }
+ * Body: { accountId, date, earned, pending }
  */
 router.put(
   "/api/daily-stats/:statId",
@@ -354,9 +410,9 @@ router.put(
     try {
       const userId = req.user!.id;
       const statId = req.params.statId;
-      const { earned, pending } = req.body;
+      const { accountId, date, earned, pending } = req.body;
 
-      // Validate MongoDB ObjectId
+      // Validate MongoDB ObjectId for stat
       if (!mongoose.Types.ObjectId.isValid(statId)) {
         return res.status(400).json({ error: "Invalid stat ID" });
       }
@@ -368,35 +424,74 @@ router.put(
         return res.status(404).json({ error: "Daily stat not found" });
       }
 
-      // Verify user owns this stat's account
-      const account = await Account.findOne({
+      // Verify user owns the current stat's account
+      const currentAccount = await Account.findOne({
         _id: stat.accountId,
         userId: userId,
       });
 
-      if (!account) {
+      if (!currentAccount) {
         return res.status(403).json({ error: "Access denied" });
       }
 
-      // Validate inputs
-      if (earned === undefined || pending === undefined) {
+      // If accountId is being changed, verify user owns the new account
+      if (accountId && accountId !== stat.accountId.toString()) {
+        if (!mongoose.Types.ObjectId.isValid(accountId)) {
+          return res.status(400).json({ error: "Invalid accountId" });
+        }
+
+        const newAccount = await Account.findOne({
+          _id: accountId,
+          userId: userId,
+        });
+
+        if (!newAccount) {
+          return res.status(403).json({ error: "New account not found or access denied" });
+        }
+
+        stat.accountId = new mongoose.Types.ObjectId(accountId);
+      }
+
+      // Update date if provided
+      if (date) {
+        const statDate = new Date(date);
+        if (isNaN(statDate.getTime())) {
+          return res.status(400).json({ error: "Invalid date format" });
+        }
+        stat.date = new Date(statDate.toISOString().split("T")[0]);
+      }
+
+      // Check if there's a duplicate stat for the same account and date
+      // (excluding the current stat being updated)
+      const accountIdToCheck = accountId ? new mongoose.Types.ObjectId(accountId) : stat.accountId;
+      const dateToCheck = date ? new Date(date).toISOString().split("T")[0] : stat.date.toISOString().split("T")[0];
+      
+      const duplicateStat = await DailyStats.findOne({
+        accountId: accountIdToCheck,
+        date: new Date(dateToCheck),
+        _id: { $ne: statId }, // Exclude current stat
+      });
+
+      if (duplicateStat) {
         return res.status(400).json({
-          error: "Missing required fields: earned, pending",
+          error: "Daily stat already exists for this account on this date",
         });
       }
 
-      const earnedNum = parseFloat(String(earned));
-      const pendingNum = parseFloat(String(pending));
+      // Update earned and pending
+      if (earned !== undefined && pending !== undefined) {
+        const earnedNum = parseFloat(String(earned));
+        const pendingNum = parseFloat(String(pending));
 
-      if (isNaN(earnedNum) || isNaN(pendingNum)) {
-        return res.status(400).json({ error: "Earned and pending must be numbers" });
+        if (isNaN(earnedNum) || isNaN(pendingNum)) {
+          return res.status(400).json({ error: "Earned and pending must be numbers" });
+        }
+
+        stat.earned = earnedNum;
+        stat.pending = pendingNum;
       }
 
-      // Update stat
-      stat.earned = earnedNum;
-      stat.pending = pendingNum;
       stat.updatedAt = new Date();
-
       await stat.save();
 
       return res.json({
