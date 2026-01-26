@@ -791,6 +791,383 @@
         border-color: #667eea;
         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
       }
+
+      /* ==================== RESPONSIVE MOBILE STYLES ==================== */
+      @media (max-width: 1024px) {
+        main {
+          margin: 15px auto;
+          padding: 0 15px;
+        }
+
+        .chart-container {
+          height: 300px;
+        }
+
+        .stats-cards {
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          gap: 10px;
+        }
+
+        .stat-card {
+          padding: 15px;
+        }
+
+        .stat-card h3 {
+          font-size: 12px;
+        }
+
+        .stat-card .value {
+          font-size: 20px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        header {
+          flex-direction: column;
+          gap: 15px;
+          padding: 15px;
+        }
+
+        header h1 {
+          font-size: 18px;
+        }
+
+        header > div {
+          flex-direction: column;
+          width: 100%;
+          gap: 15px;
+        }
+
+        nav {
+          flex-direction: column !important;
+          gap: 0 !important;
+          width: 100%;
+        }
+
+        nav a {
+          padding: 10px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 5px;
+          text-align: center;
+        }
+
+        .user-info {
+          flex-direction: column;
+          width: 100%;
+          gap: 10px;
+          font-size: 13px;
+          text-align: center;
+        }
+
+        .edit-profile-btn,
+        .logout-btn {
+          width: 100%;
+          padding: 10px 15px;
+          margin: 0;
+        }
+
+        main {
+          margin: 10px auto;
+          padding: 0 10px;
+        }
+
+        .filters-section,
+        .chart-section,
+        .accounts-section,
+        .user-profile {
+          padding: 15px;
+          margin-bottom: 15px;
+          border-radius: 8px;
+        }
+
+        .filters-section h2,
+        .chart-section h2,
+        .accounts-section h2,
+        .user-profile h2 {
+          font-size: 16px;
+          margin-bottom: 12px;
+        }
+
+        .filter-group {
+          grid-template-columns: 1fr;
+          gap: 12px;
+        }
+
+        .button-group {
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .btn {
+          width: 100%;
+          padding: 12px 15px;
+          font-size: 13px;
+        }
+
+        .chart-container {
+          height: 250px;
+        }
+
+        .stats-cards {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+        }
+
+        .stat-card {
+          padding: 12px;
+        }
+
+        .stat-card h3 {
+          font-size: 11px;
+        }
+
+        .stat-card .value {
+          font-size: 16px;
+        }
+
+        .user-details {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+
+        .accounts-section h2 {
+          flex-direction: column;
+          gap: 10px;
+          align-items: flex-start;
+        }
+
+        .add-account-btn {
+          width: 100%;
+        }
+
+        .accounts-grid {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+
+        .account-card {
+          padding: 12px;
+        }
+
+        .account-card h3 {
+          font-size: 14px;
+        }
+
+        .account-card-info {
+          font-size: 12px;
+        }
+
+        .account-actions {
+          gap: 6px;
+        }
+
+        .action-btn {
+          padding: 5px 8px;
+          font-size: 11px;
+        }
+
+        /* Modal responsive */
+        .modal-content {
+          width: 95%;
+          max-width: none;
+          max-height: 85vh;
+        }
+
+        .modal-header {
+          padding: 15px;
+        }
+
+        .modal-header h2 {
+          font-size: 18px;
+        }
+
+        .modal-body {
+          padding: 15px;
+        }
+
+        .tabs {
+          margin-bottom: 15px;
+        }
+
+        .tab-btn {
+          padding: 10px 15px;
+          font-size: 12px;
+        }
+
+        .form-group {
+          margin-bottom: 12px;
+        }
+
+        .form-group label {
+          font-size: 13px;
+        }
+
+        .form-group input {
+          padding: 10px;
+          font-size: 16px; /* Prevent zoom on iOS */
+        }
+
+        /* Account Modal */
+        .account-modal-content {
+          width: 95%;
+        }
+
+        .form-group textarea {
+          font-size: 16px;
+        }
+
+        .modal-alert {
+          padding: 12px;
+          margin: 10px 0;
+          font-size: 13px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        header h1 {
+          font-size: 16px;
+        }
+
+        main {
+          margin: 8px auto;
+          padding: 0 8px;
+        }
+
+        .filters-section,
+        .chart-section,
+        .accounts-section,
+        .user-profile {
+          padding: 12px;
+          margin-bottom: 12px;
+        }
+
+        .filter-group {
+          gap: 8px;
+        }
+
+        .chart-container {
+          height: 200px;
+        }
+
+        .stats-cards {
+          grid-template-columns: 1fr;
+          gap: 8px;
+        }
+
+        .stat-card {
+          padding: 10px;
+        }
+
+        .stat-card h3 {
+          font-size: 10px;
+        }
+
+        .stat-card .value {
+          font-size: 14px;
+        }
+
+        .filter-item label {
+          font-size: 12px;
+        }
+
+        .filter-item input {
+          padding: 8px;
+          font-size: 14px;
+        }
+
+        .btn {
+          padding: 10px 12px;
+          font-size: 12px;
+        }
+
+        .add-account-btn {
+          padding: 8px 12px;
+          font-size: 12px;
+        }
+
+        .account-card {
+          padding: 10px;
+        }
+
+        .account-card h3 {
+          font-size: 13px;
+          margin-bottom: 8px;
+        }
+
+        .account-card-info {
+          font-size: 11px;
+          margin: 6px 0;
+        }
+
+        .account-actions {
+          gap: 5px;
+          margin-top: 8px;
+          padding-top: 8px;
+        }
+
+        .action-btn {
+          padding: 4px 6px;
+          font-size: 10px;
+        }
+
+        .modal-content {
+          width: 90%;
+        }
+
+        .modal-header {
+          padding: 12px;
+        }
+
+        .modal-header h2 {
+          font-size: 16px;
+        }
+
+        .modal-body {
+          padding: 12px;
+        }
+
+        .tab-btn {
+          padding: 8px 12px;
+          font-size: 11px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+          padding: 10px;
+          font-size: 16px;
+        }
+
+        .delete-modal-content {
+          width: 90%;
+          padding: 15px;
+        }
+
+        .delete-modal-icon {
+          font-size: 48px;
+          margin-bottom: 15px;
+        }
+
+        .delete-modal-title {
+          font-size: 18px;
+          margin-bottom: 8px;
+        }
+
+        .delete-modal-message {
+          font-size: 14px;
+          margin-bottom: 20px;
+        }
+
+        .delete-modal-buttons {
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .delete-confirm-btn,
+        .delete-cancel-btn {
+          padding: 10px;
+          font-size: 14px;
+        }
+      }
     </style>
   </head>
   <body>

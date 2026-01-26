@@ -348,6 +348,292 @@
         color: #c62828;
         border: 1px solid #e57373;
       }
+
+      /* ==================== RESPONSIVE MOBILE STYLES ==================== */
+      @media (max-width: 1024px) {
+        main {
+          margin: 15px auto;
+          padding: 0 15px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        header {
+          flex-direction: column;
+          gap: 15px;
+          padding: 15px;
+        }
+
+        header h1 {
+          font-size: 18px;
+        }
+
+        header > div {
+          flex-direction: column;
+          width: 100%;
+          gap: 15px;
+        }
+
+        nav {
+          flex-direction: column !important;
+          gap: 0 !important;
+          width: 100%;
+        }
+
+        nav a {
+          padding: 10px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 5px;
+          text-align: center;
+        }
+
+        main {
+          margin: 10px auto;
+          padding: 0 10px;
+        }
+
+        .section-header {
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .section-header h2 {
+          width: 100%;
+        }
+
+        .add-stat-btn {
+          width: 100%;
+        }
+
+        .filter-container {
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .filter-group {
+          width: 100%;
+        }
+
+        .filter-group select {
+          width: 100%;
+          min-width: unset;
+        }
+
+        .stats-section {
+          padding: 15px;
+          margin-bottom: 15px;
+        }
+
+        .stats-table {
+          overflow-x: auto;
+        }
+
+        table {
+          font-size: 12px;
+          min-width: 100%;
+        }
+
+        table th,
+        table td {
+          padding: 10px 8px;
+          white-space: nowrap;
+        }
+
+        .stats-actions {
+          display: flex;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+
+        .action-btn {
+          padding: 6px 10px;
+          font-size: 11px;
+          margin: 0;
+          flex: 1;
+          min-width: 60px;
+        }
+
+        .modal-content {
+          width: 95%;
+          max-width: none;
+        }
+
+        .form-group input,
+        .form-group select {
+          font-size: 16px; /* Prevent zoom */
+          padding: 10px;
+        }
+
+        .button-group {
+          flex-direction: column;
+        }
+
+        .button-group button {
+          width: 100%;
+          padding: 12px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        header h1 {
+          font-size: 16px;
+        }
+
+        main {
+          margin: 8px auto;
+          padding: 0 8px;
+        }
+
+        .section-header {
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .add-stat-btn {
+          width: 100%;
+          padding: 10px;
+        }
+
+        .filter-container {
+          flex-direction: column;
+          gap: 8px;
+          padding: 10px;
+        }
+
+        .filter-group {
+          width: 100%;
+        }
+
+        .filter-group select {
+          width: 100%;
+          padding: 10px;
+          font-size: 14px;
+        }
+
+        .stats-section {
+          padding: 10px;
+          margin-bottom: 10px;
+        }
+
+        .stats-table {
+          overflow-x: auto;
+        }
+
+        table {
+          font-size: 11px;
+          min-width: 100%;
+        }
+
+        table th {
+          padding: 8px 6px;
+          font-size: 10px;
+        }
+
+        table td {
+          padding: 8px 6px;
+          white-space: nowrap;
+        }
+
+        .stats-actions {
+          display: flex;
+          gap: 4px;
+          flex-wrap: wrap;
+        }
+
+        .action-btn {
+          padding: 5px 8px;
+          font-size: 10px;
+          margin: 0;
+          flex: 1;
+          min-width: 50px;
+        }
+
+        .modal-content {
+          width: 90%;
+          max-height: 85vh;
+        }
+
+        .form-group {
+          margin-bottom: 12px;
+        }
+
+        .form-group label {
+          font-size: 13px;
+        }
+
+        .form-group input,
+        .form-group select {
+          padding: 10px;
+          font-size: 16px;
+        }
+
+        .button-group {
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .button-group button {
+          padding: 10px;
+          font-size: 13px;
+        }
+
+        .alert {
+          padding: 10px 12px;
+          font-size: 12px;
+        }
+      }        table {
+          font-size: 11px;
+        }
+
+        table th,
+        table td {
+          padding: 6px 4px;
+        }
+
+        table th {
+          font-size: 10px;
+        }
+
+        .action-btn {
+          padding: 4px 6px;
+          font-size: 10px;
+          margin-right: 2px;
+        }
+
+        .modal-content {
+          width: 90%;
+          max-height: 85vh;
+        }
+
+        .form-group {
+          margin-bottom: 12px;
+        }
+
+        .form-group label {
+          font-size: 13px;
+        }
+
+        .form-group input,
+        .form-group select {
+          padding: 10px;
+          font-size: 16px;
+        }
+
+        .button-group {
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .button-group button {
+          padding: 10px;
+          font-size: 13px;
+        }
+
+        .alert {
+          padding: 10px 12px;
+          font-size: 12px;
+        }
+      }
     </style>
   </head>
   <body>

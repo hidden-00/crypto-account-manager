@@ -261,6 +261,236 @@
         padding: 40px;
         color: #999;
       }
+
+      /* ==================== RESPONSIVE MOBILE STYLES ==================== */
+      @media (max-width: 768px) {
+        header {
+          flex-direction: column;
+          gap: 15px;
+          padding: 15px;
+        }
+
+        header h1 {
+          font-size: 18px;
+        }
+
+        header > div {
+          flex-direction: column;
+          width: 100%;
+          gap: 15px;
+        }
+
+        nav {
+          flex-direction: column !important;
+          gap: 0 !important;
+          width: 100%;
+        }
+
+        nav a {
+          padding: 10px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 5px;
+          text-align: center;
+        }
+
+        main {
+          margin: 10px auto;
+          padding: 0 10px;
+        }
+
+        .breadcrumb {
+          font-size: 13px;
+        }
+
+        .breadcrumb a {
+          display: block;
+          margin-bottom: 8px;
+        }
+
+        .account-info {
+          padding: 15px;
+        }
+
+        .account-info h2 {
+          font-size: 18px;
+          margin-bottom: 12px;
+        }
+
+        .info-grid {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+
+        .info-item {
+          padding: 10px 0;
+        }
+
+        .info-label {
+          font-size: 12px;
+        }
+
+        .info-value {
+          font-size: 14px;
+          margin-top: 4px;
+        }
+
+        .stats-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 10px;
+        }
+
+        .stat-card {
+          padding: 12px;
+        }
+
+        .stat-label {
+          font-size: 12px;
+        }
+
+        .stat-value {
+          font-size: 14px;
+        }
+
+        .transactions-section {
+          padding: 15px;
+        }
+
+        .transactions-section h3 {
+          font-size: 16px;
+          margin: 15px 0 12px 0;
+        }
+
+        .transactions-table {
+          overflow-x: auto;
+          display: block;
+        }
+
+        .transactions-table table {
+          min-width: 100%;
+          font-size: 12px;
+        }
+
+        .transactions-table th,
+        .transactions-table td {
+          padding: 8px 6px;
+          white-space: nowrap;
+        }
+
+        .txid {
+          max-width: 100px;
+          font-size: 10px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        header h1 {
+          font-size: 16px;
+        }
+
+        main {
+          margin: 8px auto;
+          padding: 0 8px;
+        }
+
+        .account-info {
+          padding: 12px;
+        }
+
+        .account-info h2 {
+          font-size: 16px;
+          margin-bottom: 10px;
+        }
+
+        .info-grid {
+          grid-template-columns: 1fr;
+          gap: 8px;
+        }
+
+        .info-item {
+          padding: 8px 0;
+        }
+
+        .info-label {
+          font-size: 11px;
+        }
+
+        .info-value {
+          font-size: 12px;
+          margin-top: 3px;
+          word-break: break-all;
+        }
+
+        .stats-grid {
+          grid-template-columns: 1fr;
+          gap: 8px;
+          margin: 12px 0;
+        }
+
+        .stat-card {
+          padding: 10px;
+        }
+
+        .stat-label {
+          font-size: 11px;
+        }
+
+        .stat-value {
+          font-size: 13px;
+        }
+
+        .transactions-section {
+          padding: 10px;
+        }
+
+        .transactions-section h3 {
+          font-size: 14px;
+          margin: 12px 0 10px 0;
+        }
+
+        .transactions-table {
+          overflow-x: auto;
+          display: block;
+          width: 100%;
+        }
+
+        .transactions-table table {
+          min-width: 100%;
+          font-size: 11px;
+        }
+
+        .transactions-table th {
+          padding: 6px 4px;
+          font-size: 10px;
+        }
+
+        .transactions-table td {
+          padding: 6px 4px;
+          white-space: nowrap;
+        }
+
+        .txid {
+          max-width: 80px;
+          font-size: 9px;
+        }
+
+        .received {
+          background: #e8f5e9;
+        }
+
+        .sent {
+          background: #ffe0e0;
+        }
+
+        .loading {
+          padding: 20px;
+          font-size: 13px;
+        }
+
+        .empty-state {
+          padding: 20px;
+          font-size: 13px;
+        }
+      }
     </style>
   </head>
   <body>
