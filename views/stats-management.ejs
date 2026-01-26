@@ -859,7 +859,20 @@
 
       // Close modal
       function closeStatModal() {
-        document.getElementById("statModal").classList.remove("show");
+        const modal = document.getElementById("statModal");
+        const alert = document.getElementById("modalAlert");
+        
+        // Clear timer if exists
+        if (modal.dataset.autoCloseTimer) {
+          clearTimeout(parseInt(modal.dataset.autoCloseTimer));
+          delete modal.dataset.autoCloseTimer;
+        }
+        
+        // Clear message
+        alert.textContent = "";
+        alert.className = "alert";
+        
+        modal.classList.remove("show");
         document.getElementById("statForm").reset();
         currentStatId = null;
       }
@@ -872,6 +885,12 @@
         document.getElementById("statEarned").value = earned;
         document.getElementById("statPending").value = pending;
         currentStatId = statId;
+        
+        // Clear previous messages
+        const alert = document.getElementById("modalAlert");
+        alert.textContent = "";
+        alert.className = "alert";
+        
         document.getElementById("statModal").classList.add("show");
       }
 
@@ -906,13 +925,23 @@
           alert.textContent = result.message || "Success!";
           alert.className = "alert show alert-success";
 
-          setTimeout(() => {
+          // Auto-close after 2 seconds
+          const autoCloseTimer = setTimeout(() => {
             closeStatModal();
             loadStats();
-          }, 1500);
+          }, 2000);
+          
+          // Store timer ID to clear if user closes manually
+          document.getElementById("statModal").dataset.autoCloseTimer = autoCloseTimer;
         } catch (error) {
           alert.textContent = error.message;
           alert.className = "alert show alert-error";
+          
+          // Auto-hide error message after 4 seconds
+          setTimeout(() => {
+            alert.textContent = "";
+            alert.className = "alert";
+          }, 4000);
         }
       });
 
