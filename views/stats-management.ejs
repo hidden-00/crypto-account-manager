@@ -106,6 +106,7 @@
         display: flex;
         gap: 10px;
         align-items: flex-end;
+        flex-wrap: wrap;
       }
 
       .filter-group {
@@ -121,12 +122,49 @@
         color: #666;
       }
 
-      .filter-group select {
+      .filter-group select,
+      .filter-group input {
         padding: 8px;
         border: 1px solid #ddd;
         border-radius: 5px;
         font-size: 14px;
+        min-width: 150px;
+      }
+
+      .filter-group select {
         min-width: 200px;
+      }
+
+      .filter-btn {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background 0.3s;
+        height: fit-content;
+      }
+
+      .filter-btn:hover {
+        background: #764ba2;
+      }
+
+      .filter-btn-reset {
+        background: #e0e0e0;
+        color: #333;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background 0.3s;
+        height: fit-content;
+      }
+
+      .filter-btn-reset:hover {
+        background: #d0d0d0;
       }
 
       .stats-table {
@@ -640,7 +678,6 @@
           padding: 10px 12px;
           font-size: 12px;
         }
-      }
     </style>
   </head>
   <body>
@@ -681,6 +718,16 @@
             <% }); %>
           </select>
         </div>
+        <div class="filter-group">
+          <label>Start Date</label>
+          <input type="date" id="startDateFilter" />
+        </div>
+        <div class="filter-group">
+          <label>End Date</label>
+          <input type="date" id="endDateFilter" />
+        </div>
+        <button class="filter-btn" onclick="applyFilters()">Apply Filters</button>
+        <button class="filter-btn-reset" onclick="resetFilters()">Reset</button>
       </div>
 
       <div id="alertContainer"></div>
@@ -776,6 +823,18 @@
       const today = new Date().toISOString().split("T")[0];
       document.getElementById("statDate").value = today;
 
+      // Filter functions
+      function applyFilters() {
+        loadStats();
+      }
+
+      function resetFilters() {
+        document.getElementById("accountFilter").value = "";
+        document.getElementById("startDateFilter").value = "";
+        document.getElementById("endDateFilter").value = "";
+        loadStats();
+      }
+
       // Load stats on page load
       document.addEventListener("DOMContentLoaded", function () {
         loadStats();
@@ -791,14 +850,32 @@
 
       // Load and display stats
       async function loadStats() {
-        const accountId = accountFilter.value;
+        const accountId = document.getElementById("accountFilter").value;
+        const startDate = document.getElementById("startDateFilter").value;
+        const endDate = document.getElementById("endDateFilter").value;
         const tbody = document.getElementById("statsTableBody");
         tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Loading...</td></tr>';
 
         try {
-          const url = accountId
-            ? `/api/daily-stats/${accountId}`
-            : "/api/daily-stats";
+          // Build URL with filters
+          const params = new URLSearchParams();
+          
+          if (startDate) {
+            params.append("startDate", startDate);
+          }
+          if (endDate) {
+            params.append("endDate", endDate);
+          }
+          
+          let url = "/api/daily-stats";
+          
+          if (accountId) {
+            url = `/api/daily-stats/${accountId}`;
+          }
+          
+          if (params.toString()) {
+            url += "?" + params.toString();
+          }
 
           const response = await fetch(url);
           if (!response.ok) {

@@ -554,7 +554,7 @@ router.delete(
 );
 
 /**
- * GET /api/daily-stats - Get all daily stats for user (without accountId) or by accountId
+ * GET /api/daily-stats - Get all daily stats for user (without accountId) or by accountId with optional date filtering
  */
 router.get(
   "/api/daily-stats",
@@ -563,6 +563,8 @@ router.get(
     try {
       const userId = req.user!.id;
       const accountId = req.query.accountId as string;
+      const startDateStr = req.query.startDate as string;
+      const endDateStr = req.query.endDate as string;
 
       let query: any = { userId };
 
@@ -584,6 +586,20 @@ router.get(
         query.accountId = accountId;
       }
 
+      // Add date range filtering
+      if (startDateStr) {
+        const startDate = new Date(startDateStr);
+        if (!query.date) query.date = {};
+        query.date.$gte = startDate;
+      }
+
+      if (endDateStr) {
+        const endDate = new Date(endDateStr);
+        endDate.setHours(23, 59, 59, 999); // include entire day
+        if (!query.date) query.date = {};
+        query.date.$lte = endDate;
+      }
+
       const stats = await DailyStats.find(query)
         .populate("accountId", "name ltcAddress")
         .sort({ date: -1 });
@@ -597,7 +613,7 @@ router.get(
 );
 
 /**
- * GET /api/daily-stats/:accountId - Get all daily stats for account
+ * GET /api/daily-stats/:accountId - Get all daily stats for account with optional date filtering
  */
 router.get(
   "/api/daily-stats/:accountId",
@@ -606,6 +622,8 @@ router.get(
     try {
       const userId = req.user!.id;
       const accountId = req.params.accountId;
+      const startDateStr = req.query.startDate as string;
+      const endDateStr = req.query.endDate as string;
 
       // Validate MongoDB ObjectId
       if (!mongoose.Types.ObjectId.isValid(accountId)) {
@@ -622,7 +640,23 @@ router.get(
         return res.status(403).json({ error: "Account not found or access denied" });
       }
 
-      const stats = await DailyStats.find({ accountId })
+      // Build query with optional date filters
+      let query: any = { accountId };
+
+      if (startDateStr) {
+        const startDate = new Date(startDateStr);
+        if (!query.date) query.date = {};
+        query.date.$gte = startDate;
+      }
+
+      if (endDateStr) {
+        const endDate = new Date(endDateStr);
+        endDate.setHours(23, 59, 59, 999); // include entire day
+        if (!query.date) query.date = {};
+        query.date.$lte = endDate;
+      }
+
+      const stats = await DailyStats.find(query)
         .populate("accountId", "name ltcAddress")
         .sort({ date: -1 });
       return res.json(stats);
