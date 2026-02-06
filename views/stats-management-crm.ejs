@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Daily Stats - CRM</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+        background: #f0f4f8;
+        color: #1a1a1a;
+      }
+
+      header {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+        color: white;
+        padding: 20px 30px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      header h1 {
+        font-size: 26px;
+        font-weight: 700;
+        margin-bottom: 15px;
+      }
+
+      header > div {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+      }
+
+      nav {
+        display: flex;
+        gap: 25px;
+      }
+
+      nav a {
+        color: rgba(255, 255, 255, 0.9);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        transition: color 0.3s ease;
+      }
+
+      nav a:hover {
+        color: #fff;
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        font-size: 13px;
+      }
+
+      .logout-btn {
+        padding: 8px 16px;
+        background: #ff6b6b;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .logout-btn:hover {
+        background: #ff5252;
+      }
+
+      main {
+        max-width: 1000px;
+        margin: 40px auto;
+        padding: 0 20px;
+      }
+
+      .breadcrumb {
+        margin-bottom: 25px;
+      }
+
+      .breadcrumb a {
+        color: #2a5298;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      .breadcrumb a:hover {
+        text-decoration: underline;
+      }
+
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      .section-header h2 {
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .add-stat-btn {
+        background: #4caf50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 13px;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .add-stat-btn:hover {
+        background: #45a049;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+      }
+
+      .filter-container {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        margin-bottom: 25px;
+      }
+
+      .filter-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 15px;
+      }
+
+      .filter-item {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .filter-item label {
+        font-size: 12px;
+        font-weight: 700;
+        color: #666;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .filter-item select,
+      .filter-item input {
+        padding: 10px 12px;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: inherit;
+        transition: all 0.3s ease;
+      }
+
+      .filter-item select:focus,
+      .filter-item input:focus {
+        outline: none;
+        border-color: #2a5298;
+        box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+      }
+
+      .filter-buttons {
+        display: flex;
+        gap: 10px;
+      }
+
+      .filter-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .filter-btn {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+      }
+
+      .filter-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(42, 82, 152, 0.3);
+      }
+
+      .filter-btn-reset {
+        background: #e0e0e0;
+        color: #333;
+      }
+
+      .filter-btn-reset:hover {
+        background: #d0d0d0;
+      }
+
+      #alertContainer {
+        margin-bottom: 20px;
+      }
+
+      .alert {
+        padding: 12px 15px;
+        border-radius: 6px;
+        font-size: 13px;
+        display: none;
+      }
+
+      .alert.show {
+        display: block;
+      }
+
+      .alert-success {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border-left: 4px solid #4caf50;
+      }
+
+      .alert-error {
+        background: #ffebee;
+        color: #c62828;
+        border-left: 4px solid #f44336;
+      }
+
+      .stats-section {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+      }
+
+      .stats-table {
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      table th {
+        background: #f5f7fa;
+        padding: 15px;
+        text-align: left;
+        font-weight: 700;
+        font-size: 12px;
+        color: #666;
+        border-bottom: 2px solid #e0e0e0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      table td {
+        padding: 15px;
+        border-bottom: 1px solid #e0e0e0;
+        font-size: 13px;
+      }
+
+      table tbody tr:hover {
+        background: #f9f9f9;
+      }
+
+      .stats-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .action-btn {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+      }
+
+      .edit-btn {
+        background: #ff9800;
+        color: white;
+      }
+
+      .edit-btn:hover {
+        background: #e68900;
+      }
+
+      .delete-btn {
+        background: #f44336;
+        color: white;
+      }
+
+      .delete-btn:hover {
+        background: #da190b;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .modal.show {
+        display: flex;
+      }
+
+      .modal-content {
+        background: white;
+        border-radius: 10px;
+        width: 100%;
+        max-width: 500px;
+        max-height: 85vh;
+        overflow-y: auto;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      .modal-header h2 {
+        font-size: 18px;
+        font-weight: 700;
+      }
+
+      .close-btn {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #999;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .close-btn:hover {
+        color: #1a1a1a;
+      }
+
+      .modal-body {
+        padding: 20px;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      .form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        color: #666;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .form-group input,
+      .form-group select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: inherit;
+        transition: all 0.3s ease;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus {
+        outline: none;
+        border-color: #2a5298;
+        box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+      }
+
+      .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .btn-save,
+      .btn-cancel {
+        flex: 1;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+      }
+
+      .btn-save {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+      }
+
+      .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(42, 82, 152, 0.3);
+      }
+
+      .btn-cancel {
+        background: #e0e0e0;
+        color: #333;
+      }
+
+      .btn-cancel:hover {
+        background: #d0d0d0;
+      }
+
+      #modalAlert {
+        margin-bottom: 15px;
+      }
+
+      @media (max-width: 768px) {
+        header h1 {
+          font-size: 20px;
+        }
+
+        header > div {
+          flex-direction: column;
+          gap: 15px;
+        }
+
+        nav {
+          justify-content: center;
+          gap: 15px;
+        }
+
+        main {
+          margin: 20px auto;
+          padding: 0 15px;
+        }
+
+        .section-header {
+          flex-direction: column;
+          gap: 15px;
+          align-items: flex-start;
+        }
+
+        .filter-group {
+          grid-template-columns: 1fr;
+        }
+
+        .filter-buttons {
+          flex-direction: column;
+        }
+
+        .filter-btn,
+        .filter-btn-reset {
+          width: 100%;
+        }
+
+        table th,
+        table td {
+          padding: 10px;
+          font-size: 12px;
+        }
+
+        .action-btn {
+          padding: 4px 8px;
+          font-size: 10px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        header {
+          padding: 15px;
+        }
+
+        header h1 {
+          font-size: 18px;
+          margin-bottom: 10px;
+        }
+
+        nav {
+          font-size: 12px;
+          gap: 10px;
+        }
+
+        main {
+          margin: 15px auto;
+          padding: 0 10px;
+        }
+
+        .section-header {
+          padding: 15px;
+        }
+
+        .filter-container {
+          padding: 15px;
+        }
+
+        .stats-table {
+          overflow-x: auto;
+          display: block;
+        }
+
+        table {
+          min-width: 600px;
+        }
+
+        table th,
+        table td {
+          padding: 8px;
+          font-size: 11px;
+        }
+
+        .stats-actions {
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .action-btn {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>📊 Manage Daily Stats</h1>
+      <div>
+        <nav>
+          <a href="/dashboard">Dashboard</a>
+          <a href="/stats">Manage Stats</a>
+          <a href="/input-stats">Input Stats</a>
+          <a href="/invoices">💰 Invoices</a>
+        </nav>
+        <div class="user-info">
+          <span><%= user.name %></span>
+          <form action="/logout" method="POST" style="margin: 0">
+            <button class="logout-btn" type="submit">Logout</button>
+          </form>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="breadcrumb">
+        <a href="/dashboard">← Back to Dashboard</a>
+      </div>
+
+      <div class="section-header">
+        <h2>Daily Statistics</h2>
+        <button class="add-stat-btn" onclick="openStatModal()">+ Add Stat</button>
+      </div>
+
+      <div class="filter-container">
+        <div class="filter-group">
+          <div class="filter-item">
+            <label>Filter by Account</label>
+            <select id="accountFilter">
+              <option value="">All Accounts</option>
+              <% accounts.forEach(function(account) { %>
+              <option value="<%= account.id %>"><%= account.name %></option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="filter-item">
+            <label>Start Date</label>
+            <input type="date" id="startDateFilter" />
+          </div>
+          <div class="filter-item">
+            <label>End Date</label>
+            <input type="date" id="endDateFilter" />
+          </div>
+        </div>
+        <div class="filter-buttons">
+          <button class="filter-btn" onclick="applyFilters()">Apply Filters</button>
+          <button class="filter-btn filter-btn-reset" onclick="resetFilters()">
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <div id="alertContainer"></div>
+
+      <div class="stats-section">
+        <div class="stats-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Account</th>
+                <th>Date</th>
+                <th>Earned (USD)</th>
+                <th>Pending (USD)</th>
+                <th>Total (USD)</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="statsTableBody">
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 40px; color: #999">
+                  Loading stats...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- Add/Edit Stat Modal -->
+    <div id="statModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modalTitle">Add New Stat</h2>
+          <button class="close-btn" onclick="closeStatModal()">×</button>
+        </div>
+
+        <div id="modalAlert" class="alert"></div>
+
+        <div class="modal-body">
+          <form id="statForm">
+            <div class="form-group">
+              <label for="statAccountId">Account *</label>
+              <select id="statAccountId" required>
+                <option value="">-- Select Account --</option>
+                <% accounts.forEach(function(account) { %>
+                <option value="<%= account.id %>"><%= account.name %></option>
+                <% }); %>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="statDate">Date *</label>
+              <input type="date" id="statDate" required />
+            </div>
+
+            <div class="form-group">
+              <label for="statEarned">Earned (USD) *</label>
+              <input
+                type="number"
+                id="statEarned"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="statPending">Pending (USD) *</label>
+              <input
+                type="number"
+                id="statPending"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                required
+              />
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-save">Save</button>
+              <button type="button" class="btn-cancel" onclick="closeStatModal()">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentStatId = null;
+      const accountFilter = document.getElementById("accountFilter");
+
+      // Set today as default date
+      const today = new Date().toISOString().split("T")[0];
+      document.getElementById("statDate").value = today;
+
+      // Filter functions
+      function applyFilters() {
+        loadStats();
+      }
+
+      function resetFilters() {
+        document.getElementById("accountFilter").value = "";
+        document.getElementById("startDateFilter").value = "";
+        document.getElementById("endDateFilter").value = "";
+        loadStats();
+      }
+
+      // Load stats on page load
+      document.addEventListener("DOMContentLoaded", function () {
+        loadStats();
+
+        accountFilter.addEventListener("change", loadStats);
+
+        document.getElementById("statModal").addEventListener("click", (e) => {
+          if (e.target.id === "statModal") {
+            closeStatModal();
+          }
+        });
+      });
+
+      // Load and display stats
+      async function loadStats() {
+        const accountId = document.getElementById("accountFilter").value;
+        const startDate = document.getElementById("startDateFilter").value;
+        const endDate = document.getElementById("endDateFilter").value;
+        const tbody = document.getElementById("statsTableBody");
+        tbody.innerHTML =
+          '<tr><td colspan="6" style="text-align: center; padding: 20px;">Loading...</td></tr>';
+
+        try {
+          const params = new URLSearchParams();
+
+          if (startDate) {
+            params.append("startDate", startDate);
+          }
+          if (endDate) {
+            params.append("endDate", endDate);
+          }
+
+          let url = "/api/daily-stats";
+
+          if (accountId) {
+            url = `/api/daily-stats/${accountId}`;
+          }
+
+          if (params.toString()) {
+            url += "?" + params.toString();
+          }
+
+          const response = await fetch(url);
+          if (!response.ok) {
+            throw new Error("Failed to load stats");
+          }
+
+          const data = await response.json();
+          const stats = Array.isArray(data) ? data : data.stats || [];
+
+          if (stats.length === 0) {
+            tbody.innerHTML =
+              '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #999;">No stats found. Click "Add Stat" to create one.</td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = stats
+            .map((stat) => {
+              const total = parseFloat(stat.earned || 0) + parseFloat(stat.pending || 0);
+              const accountId = stat.accountId?._id || stat.accountId;
+              const accountName = stat.accountId?.name || "Unknown";
+              const date = new Date(stat.date).toLocaleDateString();
+
+              return `
+                <tr>
+                  <td>${accountName}</td>
+                  <td>${date}</td>
+                  <td>$${parseFloat(stat.earned || 0).toFixed(2)}</td>
+                  <td>$${parseFloat(stat.pending || 0).toFixed(2)}</td>
+                  <td><strong>$${total.toFixed(2)}</strong></td>
+                  <td>
+                    <div class="stats-actions">
+                      <button class="action-btn edit-btn" onclick="editStat('${stat._id}', '${accountId}', '${stat.date}', ${stat.earned}, ${stat.pending})">
+                        Edit
+                      </button>
+                      <button class="action-btn delete-btn" onclick="deleteStat('${stat._id}')">
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              `;
+            })
+            .join("");
+        } catch (error) {
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: red;">Error: ${error.message}</td></tr>`;
+        }
+      }
+
+      // Open modal for adding new stat
+      function openStatModal() {
+        document.getElementById("modalTitle").textContent = "Add New Stat";
+        document.getElementById("statForm").reset();
+        document.getElementById("statDate").value = today;
+        document.getElementById("modalAlert").className = "alert";
+        currentStatId = null;
+        document.getElementById("statModal").classList.add("show");
+      }
+
+      // Close modal
+      function closeStatModal() {
+        const modal = document.getElementById("statModal");
+        const alert = document.getElementById("modalAlert");
+
+        if (modal.dataset.autoCloseTimer) {
+          clearTimeout(parseInt(modal.dataset.autoCloseTimer));
+          delete modal.dataset.autoCloseTimer;
+        }
+
+        alert.textContent = "";
+        alert.className = "alert";
+
+        modal.classList.remove("show");
+        document.getElementById("statForm").reset();
+        currentStatId = null;
+      }
+
+      // Edit stat
+      function editStat(statId, accountId, date, earned, pending) {
+        document.getElementById("modalTitle").textContent = "Edit Stat";
+        document.getElementById("statAccountId").value = accountId;
+        document.getElementById("statDate").value = date.split("T")[0];
+        document.getElementById("statEarned").value = earned;
+        document.getElementById("statPending").value = pending;
+        currentStatId = statId;
+
+        const alert = document.getElementById("modalAlert");
+        alert.textContent = "";
+        alert.className = "alert";
+
+        document.getElementById("statModal").classList.add("show");
+      }
+
+      // Save stat (create or update)
+      document.getElementById("statForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const accountId = document.getElementById("statAccountId").value;
+        const date = document.getElementById("statDate").value;
+        const earned = parseFloat(document.getElementById("statEarned").value);
+        const pending = parseFloat(document.getElementById("statPending").value);
+        const alert = document.getElementById("modalAlert");
+
+        try {
+          const method = currentStatId ? "PUT" : "POST";
+          const url = currentStatId
+            ? `/api/daily-stats/${currentStatId}`
+            : "/api/daily-stats";
+
+          const response = await fetch(url, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ accountId, date, earned, pending }),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.error || "Operation failed");
+          }
+
+          alert.textContent = result.message || "Success!";
+          alert.className = "alert show alert-success";
+
+          const autoCloseTimer = setTimeout(() => {
+            closeStatModal();
+            loadStats();
+          }, 2000);
+
+          document.getElementById("statModal").dataset.autoCloseTimer = autoCloseTimer;
+        } catch (error) {
+          alert.textContent = error.message;
+          alert.className = "alert show alert-error";
+
+          setTimeout(() => {
+            alert.textContent = "";
+            alert.className = "alert";
+          }, 4000);
+        }
+      });
+
+      // Delete stat
+      async function deleteStat(statId) {
+        if (!confirm("Are you sure you want to delete this stat?")) {
+          return;
+        }
+
+        try {
+          const response = await fetch(`/api/daily-stats/${statId}`, {
+            method: "DELETE",
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.error || "Delete failed");
+          }
+
+          alert("✓ Stat deleted successfully");
+          loadStats();
+        } catch (error) {
+          alert("✗ Error deleting stat: " + error.message);
+        }
+      }
+    </script>
+  </body>
+</html>

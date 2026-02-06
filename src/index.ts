@@ -9,6 +9,7 @@ import authRoutes from "./routes/authRoutes";
 import pageRoutes from "./routes/pageRoutes";
 import apiRoutes from "./routes/apiRoutes";
 import crudRoutes from "./routes/crudRoutes";
+import invoiceRoutes from "./routes/invoiceRoutes";
 import helloRouter from "./routes/hello";
 import { connectMongoDB } from "./db/mongodb";
 import { seedDatabase } from "./db/seed";
@@ -34,6 +35,7 @@ app.use(authRoutes); // /login, /logout
 app.use(pageRoutes); // /, /dashboard
 app.use(apiRoutes); // /api/*
 app.use(crudRoutes); // /api/accounts/*, /api/daily-stats/*
+app.use(invoiceRoutes); // /api/invoices/*
 app.use("/", helloRouter); // /hello route
 
 // Start server with MongoDB connection

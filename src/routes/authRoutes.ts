@@ -13,7 +13,7 @@ router.get("/login", (req: Request, res: Response) => {
   if (req.user) {
     return res.redirect("/dashboard");
   }
-  res.render("login", { error: null });
+  res.render("login-crm", { error: null });
 });
 
 /**
@@ -24,20 +24,20 @@ router.post("/login", async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.render("login", { error: "Email and password required" });
+      return res.render("login-crm", { error: "Email and password required" });
     }
 
     // Find user in MongoDB
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.render("login", { error: "Invalid credentials" });
+      return res.render("login-crm", { error: "Invalid credentials" });
     }
 
     // Verify password with bcrypt
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
-      return res.render("login", { error: "Invalid credentials" });
+      return res.render("login-crm", { error: "Invalid credentials" });
     }
 
     // Create server-side session and set sessionId cookie
@@ -60,7 +60,7 @@ router.post("/login", async (req: Request, res: Response) => {
     return res.redirect("/dashboard");
   } catch (error) {
     console.error("Login error:", error);
-    return res.render("login", { error: "Server error" });
+    return res.render("login-crm", { error: "Server error" });
   }
 });
 

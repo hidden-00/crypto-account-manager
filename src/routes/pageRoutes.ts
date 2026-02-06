@@ -19,7 +19,7 @@ router.get("/", (req: Request, res: Response) => {
  * GET /dashboard - dashboard page (requires auth)
  */
 router.get("/dashboard", authMiddleware, (req: Request, res: Response) => {
-  res.render("dashboard", { user: req.user });
+  res.render("dashboard-crm", { user: req.user });
 });
 
 /**
@@ -48,7 +48,7 @@ router.get(
         return res.status(404).render("404", { message: "Account not found" });
       }
 
-      res.render("account-details", { user: req.user, account });
+      res.render("account-details-crm", { user: req.user, account });
     } catch (error) {
       console.error("Error fetching account:", error);
       res.status(500).render("404", { message: "Server error" });
@@ -68,7 +68,17 @@ router.get("/stats", authMiddleware, async (req: Request, res: Response) => {
       createdAt: -1,
     });
 
-    res.render("stats-management", { user: req.user, accounts });
+    // Convert _id to string for template rendering
+    const accountsData = accounts.map((acc) => ({
+      id: acc._id.toString(),
+      _id: acc._id,
+      name: acc.name,
+      ltcAddress: acc.ltcAddress,
+      verifiedAt: acc.verifiedAt,
+      createdAt: acc.createdAt,
+    }));
+
+    res.render("stats-management-crm", { user: req.user, accounts: accountsData });
   } catch (error) {
     console.error("Error fetching accounts:", error);
     res.status(500).render("404", { message: "Server error" });
@@ -94,11 +104,18 @@ router.get("/input-stats", authMiddleware, async (req: Request, res: Response) =
       ltcAddress: acc.ltcAddress,
     }));
 
-    res.render("input-stats", { user: req.user, accounts: accountsData });
+    res.render("input-stats-crm", { user: req.user, accounts: accountsData });
   } catch (error) {
     console.error("Error fetching accounts:", error);
     res.status(500).render("404", { message: "Server error" });
   }
+});
+
+/**
+ * GET /invoices - invoice management page (requires auth)
+ */
+router.get("/invoices", authMiddleware, (req: Request, res: Response) => {
+  res.render("invoices-crm", { user: req.user });
 });
 
 export default router;

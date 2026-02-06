@@ -43,6 +43,19 @@ export interface ISession extends Document {
   expiresAt: Date;
 }
 
+export interface IInvoice extends Document {
+  userId: mongoose.Types.ObjectId;
+  name: string;
+  amount: number;
+  dueDate: Date;
+  status: "unpaid" | "paid" | "overdue";
+  description?: string;
+  category: string;
+  paidDate?: Date;
+  createdAt: Date;
+  updatedAt?: Date;
+}
+
 // ==================== SCHEMAS ====================
 
 const userSchema = new Schema<IUser>(
@@ -183,6 +196,61 @@ const sessionSchema = new Schema<ISession>(
 // TTL index: automatically delete expired sessions
 sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
+const invoiceSchema = new Schema<IInvoice>(
+  {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
+    amount: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    dueDate: {
+      type: Date,
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["unpaid", "paid", "overdue"],
+      default: "unpaid",
+    },
+    description: {
+      type: String,
+      default: "",
+    },
+    category: {
+      type: String,
+      required: true,
+      enum: ["electricity", "water", "rent", "internet", "other"],
+    },
+    paidDate: {
+      type: Date,
+      default: null,
+    },
+    createdAt: {
+      type: Date,
+      default: () => new Date(),
+    },
+    updatedAt: {
+      type: Date,
+      default: null,
+    },
+  },
+  { timestamps: false }
+);
+
+// Indexes for invoices
+invoiceSchema.index({ userId: 1 });
+invoiceSchema.index({ userId: 1, dueDate: 1 });
+invoiceSchema.index({ userId: 1, status: 1 });
+
 // ==================== MODELS ====================
 
 export const User: Model<IUser> = mongoose.model<IUser>("User", userSchema);
@@ -197,6 +265,10 @@ export const DailyStats: Model<IDailyStats> = mongoose.model<IDailyStats>(
 export const Session: Model<ISession> = mongoose.model<ISession>(
   "Session",
   sessionSchema
+);
+export const Invoice: Model<IInvoice> = mongoose.model<IInvoice>(
+  "Invoice",
+  invoiceSchema
 );
 
 // ==================== CONNECTION ====================

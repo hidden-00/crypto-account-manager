@@ -57,6 +57,23 @@ export interface Session {
 }
 
 /**
+ * Invoice Schema - monthly bills/invoices for user
+ */
+export interface Invoice {
+  _id?: string; // MongoDB ObjectId
+  userId: string | number; // Reference to User._id
+  name: string; // Invoice name (e.g., "Electricity Bill")
+  amount: number; // Amount to pay (in USD or local currency)
+  dueDate: Date; // When payment is due
+  status: "unpaid" | "paid" | "overdue"; // Status of invoice
+  description?: string; // Additional notes/details
+  category: string; // Type: "electricity", "water", "rent", "internet", "other"
+  paidDate?: Date; // When it was paid (only if paid)
+  createdAt: Date; // When invoice was created
+  updatedAt?: Date; // When invoice was last updated
+}
+
+/**
  * MongoDB Index Recommendations (add in production):
  *
  * Users Collection:
@@ -74,4 +91,9 @@ export interface Session {
  * Sessions Collection:
  *   - db.sessions.createIndex({ userId: 1 })
  *   - db.sessions.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }) // TTL index
+ *
+ * Invoices Collection:
+ *   - db.invoices.createIndex({ userId: 1 })
+ *   - db.invoices.createIndex({ userId: 1, dueDate: 1 })
+ *   - db.invoices.createIndex({ userId: 1, status: 1 })
  */
