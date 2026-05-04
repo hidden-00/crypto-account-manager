@@ -762,7 +762,6 @@
           <a href="/dashboard">Dashboard</a>
           <a href="/stats">Manage Stats</a>
           <a href="/input-stats">Input Stats</a>
-          <a href="/invoices">💰 Invoices</a>
         </nav>
         <div class="user-info">
           <span><%= user.name %></span>
@@ -870,16 +869,7 @@
               <input
                 type="text"
                 id="accountName"
-                placeholder="e.g., My LTC Wallet"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label for="ltcAddress">LTC Address *</label>
-              <input
-                type="text"
-                id="ltcAddress"
-                placeholder="e.g., ltc1q..."
+                placeholder="e.g., Main Account"
                 required
               />
             </div>
@@ -1335,16 +1325,10 @@
               (acc) => `
               <div class="account-card" onclick="viewAccount('${acc.id}')">
                 <div class="account-name">${acc.name}</div>
-                <div class="account-info"><strong>Address:</strong> ${acc.ltcAddress.substring(0, 20)}...</div>
                 <div class="account-info"><strong>Created:</strong> ${new Date(acc.createdAt).toLocaleDateString()}</div>
-                ${
-                  acc.verifiedAt
-                    ? `<span class="badge badge-verified">✓ Verified</span>`
-                    : `<span class="badge badge-pending">⏳ Pending</span>`
-                }
                 <div class="account-actions">
                   <button class="action-btn view-btn" onclick="event.stopPropagation(); viewAccount('${acc.id}')">View</button>
-                  <button class="action-btn edit-btn" onclick="event.stopPropagation(); editAccount('${acc.id}', '${acc.name}', '${acc.ltcAddress}')">Edit</button>
+                  <button class="action-btn edit-btn" onclick="event.stopPropagation(); editAccount('${acc.id}', '${acc.name}')">Edit</button>
                   <button class="action-btn delete-btn" onclick="event.stopPropagation(); deleteAccount('${acc.id}', '${acc.name}')">Delete</button>
                 </div>
               </div>
@@ -1373,18 +1357,16 @@
 
       let currentAccountId = null;
 
-      function editAccount(accountId, name, address) {
+      function editAccount(accountId, name) {
         currentAccountId = accountId;
         document.getElementById("modalTitle").textContent = "Edit Account";
         document.getElementById("accountName").value = name;
-        document.getElementById("ltcAddress").value = address;
         document.getElementById("accountModal").classList.add("show");
       }
 
       document.getElementById("accountForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         const name = document.getElementById("accountName").value;
-        const ltcAddress = document.getElementById("ltcAddress").value;
         const alert = document.getElementById("modalAlert");
 
         try {
@@ -1396,7 +1378,7 @@
           const response = await fetch(url, {
             method: method,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, ltcAddress }),
+            body: JSON.stringify({ name }),
           });
 
           if (!response.ok) throw new Error("Operation failed");

@@ -18,9 +18,8 @@ export interface IUser extends Document {
 export interface IAccount extends Document {
   userId: mongoose.Types.ObjectId;
   name: string;
-  ltcAddress: string;
   createdAt: Date;
-  verifiedAt?: Date;
+  deleted: boolean;
 }
 
 export interface IDailyStats extends Document {
@@ -31,6 +30,7 @@ export interface IDailyStats extends Document {
   pending: number;
   createdAt: Date;
   updatedAt?: Date;
+  deleted: boolean;
 }
 
 export interface ISession extends Document {
@@ -41,19 +41,6 @@ export interface ISession extends Document {
   ipAddress?: string;
   createdAt: Date;
   expiresAt: Date;
-}
-
-export interface IInvoice extends Document {
-  userId: mongoose.Types.ObjectId;
-  name: string;
-  amount: number;
-  dueDate: Date;
-  status: "unpaid" | "paid" | "overdue";
-  description?: string;
-  category: string;
-  paidDate?: Date;
-  createdAt: Date;
-  updatedAt?: Date;
 }
 
 // ==================== SCHEMAS ====================
@@ -99,18 +86,14 @@ const accountSchema = new Schema<IAccount>(
       type: String,
       required: true,
     },
-    ltcAddress: {
-      type: String,
-      required: true,
-      unique: true,
-    },
     createdAt: {
       type: Date,
       default: () => new Date(),
     },
-    verifiedAt: {
-      type: Date,
-      default: null,
+    deleted: {
+      type: Boolean,
+      default: false,
+      required: true,
     },
   },
   { timestamps: false }
@@ -149,6 +132,11 @@ const dailyStatsSchema = new Schema<IDailyStats>(
     updatedAt: {
       type: Date,
       default: null,
+    },
+    deleted: {
+      type: Boolean,
+      default: false,
+      required: true,
     },
   },
   { timestamps: false }
@@ -196,63 +184,7 @@ const sessionSchema = new Schema<ISession>(
 // TTL index: automatically delete expired sessions
 sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-const invoiceSchema = new Schema<IInvoice>(
-  {
-    userId: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    name: {
-      type: String,
-      required: true,
-    },
-    amount: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-    dueDate: {
-      type: Date,
-      required: true,
-    },
-    status: {
-      type: String,
-      enum: ["unpaid", "paid", "overdue"],
-      default: "unpaid",
-    },
-    description: {
-      type: String,
-      default: "",
-    },
-    category: {
-      type: String,
-      required: true,
-      enum: ["electricity", "water", "rent", "internet", "other"],
-    },
-    paidDate: {
-      type: Date,
-      default: null,
-    },
-    createdAt: {
-      type: Date,
-      default: () => new Date(),
-    },
-    updatedAt: {
-      type: Date,
-      default: null,
-    },
-  },
-  { timestamps: false }
-);
-
-// Indexes for invoices
-invoiceSchema.index({ userId: 1 });
-invoiceSchema.index({ userId: 1, dueDate: 1 });
-invoiceSchema.index({ userId: 1, status: 1 });
-
 // ==================== MODELS ====================
-
 export const User: Model<IUser> = mongoose.model<IUser>("User", userSchema);
 export const Account: Model<IAccount> = mongoose.model<IAccount>(
   "Account",
@@ -265,10 +197,6 @@ export const DailyStats: Model<IDailyStats> = mongoose.model<IDailyStats>(
 export const Session: Model<ISession> = mongoose.model<ISession>(
   "Session",
   sessionSchema
-);
-export const Invoice: Model<IInvoice> = mongoose.model<IInvoice>(
-  "Invoice",
-  invoiceSchema
 );
 
 // ==================== CONNECTION ====================

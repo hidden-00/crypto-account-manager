@@ -19,8 +19,6 @@ export interface SeedUser {
 export interface SeedAccount {
   userEmail?: string; // Helper field, not part of Account schema
   name: string;
-  ltcAddress: string;
-  verifiedAt?: Date;
 }
 
 export interface SeedDailyStat {
@@ -56,36 +54,26 @@ const seedAccounts: SeedAccount[] = [
   {
     userEmail: "john@example.com",
     name: "hansnosp",
-    ltcAddress: "ltc1q3lzgsizifxsg3lt5z3pcu0s06c8286353m6xffy",
-    verifiedAt: new Date("2025-12-28"),
   },
   {
     userEmail: "john@example.com",
     name: "duymanhdol",
-    ltcAddress: "ltc1q3fexuggy4iycfh4n9c5rd54lggjwrzy5j66",
-    verifiedAt: new Date("2025-12-28"),
   },
   {
     userEmail: "jane@example.com",
     name: "huynoaaa",
-    ltcAddress: "ltc1qfwd0lqvvg8ht087g8vd4uf6jsecmmbfzjczvy",
-    verifiedAt: new Date("2025-12-28"),
   },
   {
     userEmail: "jane@example.com",
     name: "gameez",
-    ltcAddress: "ltc1q8itcefh0d30snusrjutzulxcc2t03n4wig3wh",
   },
   {
     userEmail: "bob@example.com",
     name: "truonglamgjau",
-    ltcAddress: "ltc1qdvpvsc36rvq3xqmqu0j0vcq4hfp6ayx8s2mq3",
-    verifiedAt: new Date("2025-12-28"),
   },
   {
     userEmail: "bob@example.com",
     name: "coderthaighiep",
-    ltcAddress: "ltc1qav39hwgk3jzk78jf8mazgcycp9n7cq6hhipg",
   },
 ];
 
@@ -159,9 +147,7 @@ export async function seedDatabase(): Promise<void> {
     const accountData = seedAccounts.map((acc) => ({
       userId: new mongoose.Types.ObjectId(userEmailToId.get(acc.userEmail!)!),
       name: acc.name,
-      ltcAddress: acc.ltcAddress,
       createdAt: new Date(),
-      verifiedAt: acc.verifiedAt,
     }));
 
     const createdAccounts = await Account.insertMany(accountData);

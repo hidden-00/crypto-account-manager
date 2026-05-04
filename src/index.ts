@@ -35,7 +35,6 @@ app.use(authRoutes); // /login, /logout
 app.use(pageRoutes); // /, /dashboard
 app.use(apiRoutes); // /api/*
 app.use(crudRoutes); // /api/accounts/*, /api/daily-stats/*
-app.use(invoiceRoutes); // /api/invoices/*
 app.use("/", helloRouter); // /hello route
 
 // Start server with MongoDB connection

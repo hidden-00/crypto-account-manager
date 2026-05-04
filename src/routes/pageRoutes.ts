@@ -42,6 +42,7 @@ router.get(
       const account = await Account.findOne({
         _id: accountId,
         userId: userId,
+        deleted: false,
       });
 
       if (!account) {
@@ -64,7 +65,7 @@ router.get("/stats", authMiddleware, async (req: Request, res: Response) => {
 
   try {
     // Get all user's accounts
-    const accounts = await Account.find({ userId: userId }).sort({
+    const accounts = await Account.find({ userId: userId, deleted: false }).sort({
       createdAt: -1,
     });
 
@@ -73,8 +74,6 @@ router.get("/stats", authMiddleware, async (req: Request, res: Response) => {
       id: acc._id.toString(),
       _id: acc._id,
       name: acc.name,
-      ltcAddress: acc.ltcAddress,
-      verifiedAt: acc.verifiedAt,
       createdAt: acc.createdAt,
     }));
 
@@ -93,7 +92,7 @@ router.get("/input-stats", authMiddleware, async (req: Request, res: Response) =
 
   try {
     // Get all user's accounts
-    const accounts = await Account.find({ userId: userId }).sort({
+    const accounts = await Account.find({ userId: userId, deleted: false }).sort({
       createdAt: -1,
     });
 
@@ -101,7 +100,6 @@ router.get("/input-stats", authMiddleware, async (req: Request, res: Response) =
     const accountsData = accounts.map((acc) => ({
       id: acc._id.toString(),
       name: acc.name,
-      ltcAddress: acc.ltcAddress,
     }));
 
     res.render("input-stats-crm", { user: req.user, accounts: accountsData });
@@ -109,13 +107,6 @@ router.get("/input-stats", authMiddleware, async (req: Request, res: Response) =
     console.error("Error fetching accounts:", error);
     res.status(500).render("404", { message: "Server error" });
   }
-});
-
-/**
- * GET /invoices - invoice management page (requires auth)
- */
-router.get("/invoices", authMiddleware, (req: Request, res: Response) => {
-  res.render("invoices-crm", { user: req.user });
 });
 
 export default router;

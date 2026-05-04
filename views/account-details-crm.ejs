@@ -392,7 +392,6 @@
           <a href="/dashboard">Dashboard</a>
           <a href="/stats">Manage Stats</a>
           <a href="/input-stats">Input Stats</a>
-          <a href="/invoices">💰 Invoices</a>
         </nav>
         <div class="user-info">
           <span><%= user.name %></span>
@@ -416,148 +415,13 @@
             <div class="info-value"><%= account.id %></div>
           </div>
           <div class="info-card">
-            <div class="info-label">LTC Address</div>
-            <div class="info-value"><%= account.ltcAddress %></div>
-          </div>
-          <div class="info-card">
             <div class="info-label">Created Date</div>
             <div class="info-value">
               <%= new Date(account.createdAt).toLocaleDateString() %>
             </div>
           </div>
-          <div class="info-card">
-            <div class="info-label">Status</div>
-            <div>
-              <% if (account.verifiedAt) { %>
-              <span class="badge badge-verified">✓ Verified</span>
-              <% } else { %>
-              <span class="badge badge-pending">⏳ Pending</span>
-              <% } %>
-            </div>
-          </div>
-          <% if (account.verifiedAt) { %>
-          <div class="info-card">
-            <div class="info-label">Verified Date</div>
-            <div class="info-value">
-              <%= new Date(account.verifiedAt).toLocaleDateString() %>
-            </div>
-          </div>
-          <% } %>
         </div>
-      </div>
-
-      <div class="section">
-        <h3>📊 Transaction Summary</h3>
-        <div class="stats-grid">
-          <div class="stat-box">
-            <div class="stat-label">Total Received</div>
-            <div class="stat-value" id="stat-received">-</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-label">Total Sent</div>
-            <div class="stat-value" id="stat-sent">-</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-label">Current Balance</div>
-            <div class="stat-value" id="stat-balance">-</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-label">Transactions</div>
-            <div class="stat-value" id="stat-txcount">-</div>
-          </div>
-        </div>
-
-        <div id="transactions-container"></div>
       </div>
     </main>
-
-    <script>
-      async function loadTransactions() {
-        try {
-          const accountId = "<%= account.id %>";
-          const response = await fetch(`/api/accounts/${accountId}/transactions`);
-
-          if (!response.ok) throw new Error("Failed to fetch transactions");
-
-          const data = await response.json();
-          displayTransactions(data);
-        } catch (error) {
-          console.error("Error:", error);
-          document.getElementById("transactions-container").innerHTML = `
-            <div class="error">Failed to load transactions: ${error.message}</div>
-          `;
-        }
-      }
-
-      function displayTransactions(data) {
-        // Update stats
-        document.getElementById("stat-received").textContent = (
-          data.totalReceived / 1e8
-        ).toFixed(8);
-        document.getElementById("stat-sent").textContent = (
-          data.totalSent / 1e8
-        ).toFixed(8);
-        document.getElementById("stat-balance").textContent = (
-          data.finalBalance / 1e8
-        ).toFixed(8);
-        document.getElementById("stat-txcount").textContent = data.txCount;
-
-        const container = document.getElementById("transactions-container");
-
-        if (!data.transactions || data.transactions.length === 0) {
-          container.innerHTML = `
-            <div class="empty-state">
-              No transactions found for this address
-            </div>
-          `;
-          return;
-        }
-
-        let html = `
-          <table class="transactions-table">
-            <thead>
-              <tr>
-                <th>Transaction ID</th>
-                <th>Date</th>
-                <th>Direction</th>
-                <th>Amount (LTC)</th>
-                <th>Confirmations</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-        `;
-
-        data.transactions.forEach((tx) => {
-          const date = new Date(tx.confirmed);
-          const statusClass = tx.confirmations > 0 ? "confirmed" : "unconfirmed";
-          const statusText = tx.confirmations > 0 ? "Confirmed" : "Unconfirmed";
-          const amount = tx.amountLTC.toFixed(8);
-          const directionText = tx.direction === "received" ? "Received" : "Sent";
-          const directionBadgeClass =
-            tx.direction === "received" ? "badge-received" : "badge-sent";
-
-          html += `
-            <tr>
-              <td class="txid" title="${tx.txid}">${tx.txid}</td>
-              <td>${date.toLocaleDateString()} ${date.toLocaleTimeString()}</td>
-              <td><span class="${directionBadgeClass}">${directionText}</span></td>
-              <td>${amount}</td>
-              <td>${tx.confirmations}</td>
-              <td>${statusText}</td>
-            </tr>
-          `;
-        });
-
-        html += `
-            </tbody>
-          </table>
-        `;
-
-        container.innerHTML = html;
-      }
-
-      document.addEventListener("DOMContentLoaded", loadTransactions);
-    </script>
   </body>
 </html>

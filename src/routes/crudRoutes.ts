@@ -5,7 +5,7 @@
 
 import { Router, Request, Response } from "express";
 import { requireAuth } from "../middleware/auth";
-import { Account, DailyStats, User } from "../db/mongodb";
+import { Account, DailyStats } from "../db/mongodb";
 import mongoose from "mongoose";
 
 const router = Router();
@@ -14,22 +14,22 @@ const router = Router();
 
 /**
  * POST /api/accounts - Create new account
- * Body: { name, ltcAddress }
+ * Body: { name }
  */
 router.post("/api/accounts", requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
-    const { name, ltcAddress } = req.body;
+    const { name } = req.body;
 
     // Validate inputs
-    if (!name || !ltcAddress) {
+    if (!name) {
       return res.status(400).json({
-        error: "Missing required fields: name, ltcAddress",
+        error: "Missing required field: name",
       });
     }
 
     // Check if account name already exists for this user
-    const existingAccount = await Account.findOne({ userId, name });
+    const existingAccount = await Account.findOne({ userId, name, deleted: false });
     if (existingAccount) {
       return res.status(400).json({
         error: "Account with this name already exists",
@@ -40,7 +40,6 @@ router.post("/api/accounts", requireAuth, async (req: Request, res: Response) =>
     const newAccount = new Account({
       userId: new mongoose.Types.ObjectId(userId),
       name: name.trim(),
-      ltcAddress: ltcAddress.trim(),
       createdAt: new Date(),
     });
 
@@ -52,7 +51,6 @@ router.post("/api/accounts", requireAuth, async (req: Request, res: Response) =>
       data: {
         _id: newAccount._id.toString(),
         name: newAccount.name,
-        ltcAddress: newAccount.ltcAddress,
         createdAt: newAccount.createdAt,
       },
     });
@@ -64,7 +62,7 @@ router.post("/api/accounts", requireAuth, async (req: Request, res: Response) =>
 
 /**
  * PUT /api/accounts/:accountId - Update account
- * Body: { name, ltcAddress }
+ * Body: { name }
  */
 router.put(
   "/api/accounts/:accountId",
@@ -73,7 +71,7 @@ router.put(
     try {
       const userId = req.user!.id;
       const accountId = req.params.accountId;
-      const { name, ltcAddress } = req.body;
+      const { name } = req.body;
 
       // Validate MongoDB ObjectId
       if (!mongoose.Types.ObjectId.isValid(accountId)) {
@@ -84,6 +82,7 @@ router.put(
       const account = await Account.findOne({
         _id: accountId,
         userId: userId,
+        deleted: false,
       });
 
       if (!account) {
@@ -97,6 +96,7 @@ router.put(
           userId,
           name: name.trim(),
           _id: { $ne: accountId },
+          deleted: false,
         });
         if (duplicate) {
           return res.status(400).json({
@@ -104,10 +104,6 @@ router.put(
           });
         }
         account.name = name.trim();
-      }
-
-      if (ltcAddress) {
-        account.ltcAddress = ltcAddress.trim();
       }
 
       await account.save();
@@ -118,9 +114,7 @@ router.put(
         data: {
           _id: account._id.toString(),
           name: account.name,
-          ltcAddress: account.ltcAddress,
           createdAt: account.createdAt,
-          verifiedAt: account.verifiedAt,
         },
       });
     } catch (error) {
@@ -150,136 +144,25 @@ router.delete(
       const account = await Account.findOne({
         _id: accountId,
         userId: userId,
+        deleted: false,
       });
 
       if (!account) {
         return res.status(404).json({ error: "Account not found" });
       }
 
-      // Delete associated daily stats
-      await DailyStats.deleteMany({ accountId });
+      // Soft-delete associated daily stats
+      await DailyStats.updateMany({ accountId, deleted: false }, { deleted: true });
 
-      // Delete account
-      await Account.deleteOne({ _id: accountId });
+      // Soft-delete account
+      await Account.updateOne({ _id: accountId }, { deleted: true });
 
       return res.json({
         success: true,
-        message: "Account and associated stats deleted successfully",
+        message: "Account and associated stats marked deleted successfully",
       });
     } catch (error) {
       console.error("Error deleting account:", error);
-      return res.status(500).json({ error: "Server error" });
-    }
-  }
-);
-
-/**
- * PATCH /api/accounts/:accountId/verify - Verify an account
- */
-router.patch(
-  "/api/accounts/:accountId/verify",
-  requireAuth,
-  async (req: Request, res: Response) => {
-    try {
-      const userId = req.user!.id;
-      const accountId = req.params.accountId;
-
-      // Validate MongoDB ObjectId
-      if (!mongoose.Types.ObjectId.isValid(accountId)) {
-        return res.status(400).json({ error: "Invalid accountId" });
-      }
-
-      // Check user owns this account
-      const account = await Account.findOne({
-        _id: accountId,
-        userId: userId,
-      });
-
-      if (!account) {
-        return res.status(404).json({ error: "Account not found" });
-      }
-
-      // Check if already verified
-      if (account.verifiedAt) {
-        return res.status(400).json({
-          error: "Account is already verified",
-        });
-      }
-
-      // Mark as verified
-      account.verifiedAt = new Date();
-      await account.save();
-
-      return res.json({
-        success: true,
-        message: "Account verified successfully",
-        data: {
-          _id: account._id.toString(),
-          name: account.name,
-          ltcAddress: account.ltcAddress,
-          createdAt: account.createdAt,
-          verifiedAt: account.verifiedAt,
-          isVerified: true,
-        },
-      });
-    } catch (error) {
-      console.error("Error verifying account:", error);
-      return res.status(500).json({ error: "Server error" });
-    }
-  }
-);
-
-/**
- * PATCH /api/accounts/:accountId/unverify - Unverify an account
- */
-router.patch(
-  "/api/accounts/:accountId/unverify",
-  requireAuth,
-  async (req: Request, res: Response) => {
-    try {
-      const userId = req.user!.id;
-      const accountId = req.params.accountId;
-
-      // Validate MongoDB ObjectId
-      if (!mongoose.Types.ObjectId.isValid(accountId)) {
-        return res.status(400).json({ error: "Invalid accountId" });
-      }
-
-      // Check user owns this account
-      const account = await Account.findOne({
-        _id: accountId,
-        userId: userId,
-      });
-
-      if (!account) {
-        return res.status(404).json({ error: "Account not found" });
-      }
-
-      // Check if verified
-      if (!account.verifiedAt) {
-        return res.status(400).json({
-          error: "Account is not verified",
-        });
-      }
-
-      // Mark as unverified
-      account.verifiedAt = undefined;
-      await account.save();
-
-      return res.json({
-        success: true,
-        message: "Account unverified successfully",
-        data: {
-          _id: account._id.toString(),
-          name: account.name,
-          ltcAddress: account.ltcAddress,
-          createdAt: account.createdAt,
-          verifiedAt: account.verifiedAt,
-          isVerified: false,
-        },
-      });
-    } catch (error) {
-      console.error("Error unverifying account:", error);
       return res.status(500).json({ error: "Server error" });
     }
   }
@@ -293,7 +176,7 @@ router.get("/api/accounts", requireAuth, async (req: Request, res: Response) => 
     const userId = req.user!.id;
 
     // Get all user's accounts
-    const accounts = await Account.find({ userId: userId }).sort({
+    const accounts = await Account.find({ userId: userId, deleted: false }).sort({
       createdAt: -1,
     });
 
@@ -301,10 +184,8 @@ router.get("/api/accounts", requireAuth, async (req: Request, res: Response) => 
     const formattedAccounts = accounts.map((account) => ({
       _id: account._id.toString(),
       name: account.name,
-      ltcAddress: account.ltcAddress,
       createdAt: account.createdAt,
-      verifiedAt: account.verifiedAt,
-      isVerified: !!account.verifiedAt,
+      deleted: account.deleted,
     }));
 
     return res.json(formattedAccounts);
@@ -341,6 +222,7 @@ router.post("/api/daily-stats", requireAuth, async (req: Request, res: Response)
     const account = await Account.findOne({
       _id: accountId,
       userId: userId,
+      deleted: false,
     });
 
     if (!account) {
@@ -368,6 +250,7 @@ router.post("/api/daily-stats", requireAuth, async (req: Request, res: Response)
     const existingStat = await DailyStats.findOne({
       accountId,
       date: statDateNormalized,
+      deleted: false,
     });
 
     if (existingStat) {
@@ -418,7 +301,7 @@ router.put(
       }
 
       // Find the stat and verify ownership
-      const stat = await DailyStats.findById(statId);
+      const stat = await DailyStats.findOne({ _id: statId, deleted: false });
 
       if (!stat) {
         return res.status(404).json({ error: "Daily stat not found" });
@@ -428,6 +311,7 @@ router.put(
       const currentAccount = await Account.findOne({
         _id: stat.accountId,
         userId: userId,
+        deleted: false,
       });
 
       if (!currentAccount) {
@@ -443,6 +327,7 @@ router.put(
         const newAccount = await Account.findOne({
           _id: accountId,
           userId: userId,
+          deleted: false,
         });
 
         if (!newAccount) {
@@ -470,6 +355,7 @@ router.put(
         accountId: accountIdToCheck,
         date: new Date(dateToCheck),
         _id: { $ne: statId }, // Exclude current stat
+        deleted: false,
       });
 
       if (duplicateStat) {
@@ -523,7 +409,7 @@ router.delete(
       }
 
       // Find the stat and verify ownership
-      const stat = await DailyStats.findById(statId);
+      const stat = await DailyStats.findOne({ _id: statId, deleted: false });
 
       if (!stat) {
         return res.status(404).json({ error: "Daily stat not found" });
@@ -533,18 +419,19 @@ router.delete(
       const account = await Account.findOne({
         _id: stat.accountId,
         userId: userId,
+        deleted: false,
       });
 
       if (!account) {
         return res.status(403).json({ error: "Access denied" });
       }
 
-      // Delete stat
-      await DailyStats.deleteOne({ _id: statId });
+      // Soft-delete stat
+      await DailyStats.updateOne({ _id: statId }, { deleted: true });
 
       return res.json({
         success: true,
-        message: "Daily stat deleted successfully",
+        message: "Daily stat marked deleted successfully",
       });
     } catch (error) {
       console.error("Error deleting daily stat:", error);
@@ -566,7 +453,7 @@ router.get(
       const startDateStr = req.query.startDate as string;
       const endDateStr = req.query.endDate as string;
 
-      let query: any = { userId };
+      let query: any = { userId, deleted: false };
 
       if (accountId) {
         if (!mongoose.Types.ObjectId.isValid(accountId)) {
@@ -577,6 +464,7 @@ router.get(
         const account = await Account.findOne({
           _id: accountId,
           userId: userId,
+          deleted: false,
         });
 
         if (!account) {
@@ -601,7 +489,7 @@ router.get(
       }
 
       const stats = await DailyStats.find(query)
-        .populate("accountId", "name ltcAddress")
+        .populate("accountId", "name")
         .sort({ date: -1 });
 
       return res.json(stats);
@@ -641,7 +529,7 @@ router.get(
       }
 
       // Build query with optional date filters
-      let query: any = { accountId };
+      let query: any = { accountId, deleted: false };
 
       if (startDateStr) {
         const startDate = new Date(startDateStr);
@@ -657,7 +545,7 @@ router.get(
       }
 
       const stats = await DailyStats.find(query)
-        .populate("accountId", "name ltcAddress")
+        .populate("accountId", "name")
         .sort({ date: -1 });
       return res.json(stats);
     } catch (error) {
