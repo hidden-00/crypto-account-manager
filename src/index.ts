@@ -9,7 +9,6 @@ import authRoutes from "./routes/authRoutes";
 import pageRoutes from "./routes/pageRoutes";
 import apiRoutes from "./routes/apiRoutes";
 import crudRoutes from "./routes/crudRoutes";
-import invoiceRoutes from "./routes/invoiceRoutes";
 import helloRouter from "./routes/hello";
 import { connectMongoDB } from "./db/mongodb";
 import { seedDatabase } from "./db/seed";
