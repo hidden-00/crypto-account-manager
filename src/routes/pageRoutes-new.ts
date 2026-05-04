@@ -25,7 +25,6 @@ router.get("/input-stats", authMiddleware, async (req: Request, res: Response) =
     const accountsData = accounts.map(acc => ({
       _id: acc._id.toString(),
       name: acc.name,
-      ltcAddress: acc.ltcAddress,
     }));
 
     res.render("input-stats", { user: req.user, accounts: accountsData });
