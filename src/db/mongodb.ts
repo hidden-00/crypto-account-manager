@@ -1,8 +1,9 @@
 /**
  * MongoDB Connection & Mongoose Schemas
+ * hello Mike - This file defines the Mongoose schemas and models for User, Account, DailyStats, and Session.
+ * It also includes functions to connect and disconnect from MongoDB, as well as a helper to check connection status.
  * Using Mongoose for schema validation and type safety
  */
-
 import mongoose, { Schema, Document, Model } from "mongoose";
 
 // ==================== INTERFACES ====================
