@@ -204,7 +204,7 @@ router.get("/api/accounts", requireAuth, async (req: Request, res: Response) => 
 router.post("/api/daily-stats", requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
-    const { accountId, date, earned, pending } = req.body;
+    const { accountId, date, earned, pending, withdraw } = req.body;
 
     // Validate inputs
     if (!accountId || !date || earned === undefined || pending === undefined) {
@@ -235,13 +235,17 @@ router.post("/api/daily-stats", requireAuth, async (req: Request, res: Response)
       return res.status(400).json({ error: "Invalid date format" });
     }
 
-    // Validate earned/pending are numbers
-    const earnedNum = parseFloat(String(earned));
+    // Validate earned/pending/withdraw are numbers
+    const earnedAvailableNum = parseFloat(String(earned));
     const pendingNum = parseFloat(String(pending));
+    const withdrawNum = parseFloat(String(withdraw ?? 0));
 
-    if (isNaN(earnedNum) || isNaN(pendingNum)) {
-      return res.status(400).json({ error: "Earned and pending must be numbers" });
+    if (isNaN(earnedAvailableNum) || isNaN(pendingNum) || isNaN(withdrawNum)) {
+      return res.status(400).json({ error: "Earned, pending, and withdraw must be numbers" });
     }
+
+    // Store the raw earned-available value; withdraw is tracked separately.
+    const storedEarned = earnedAvailableNum;
 
     // Normalize date to midnight UTC
     const statDateNormalized = new Date(statDate.toISOString().split("T")[0]);
@@ -264,8 +268,9 @@ router.post("/api/daily-stats", requireAuth, async (req: Request, res: Response)
       accountId: new mongoose.Types.ObjectId(accountId),
       userId: new mongoose.Types.ObjectId(userId),
       date: statDateNormalized,
-      earned: earnedNum,
+      earned: storedEarned,
       pending: pendingNum,
+      withdraw: withdrawNum,
       createdAt: new Date(),
     });
 
@@ -293,7 +298,7 @@ router.put(
     try {
       const userId = req.user!.id;
       const statId = req.params.statId;
-      const { accountId, date, earned, pending } = req.body;
+      const { accountId, date, earned, pending, withdraw } = req.body;
 
       // Validate MongoDB ObjectId for stat
       if (!mongoose.Types.ObjectId.isValid(statId)) {
@@ -364,17 +369,19 @@ router.put(
         });
       }
 
-      // Update earned and pending
-      if (earned !== undefined && pending !== undefined) {
-        const earnedNum = parseFloat(String(earned));
-        const pendingNum = parseFloat(String(pending));
+      // Update earned available, pending, and withdraw
+      if (earned !== undefined || pending !== undefined || withdraw !== undefined) {
+        const earnedAvailableNum = earned === undefined ? stat.earned + (stat.withdraw || 0) : parseFloat(String(earned));
+        const pendingNum = pending === undefined ? stat.pending : parseFloat(String(pending));
+        const withdrawNum = withdraw === undefined ? (stat.withdraw || 0) : parseFloat(String(withdraw));
 
-        if (isNaN(earnedNum) || isNaN(pendingNum)) {
-          return res.status(400).json({ error: "Earned and pending must be numbers" });
+        if (isNaN(earnedAvailableNum) || isNaN(pendingNum) || isNaN(withdrawNum)) {
+          return res.status(400).json({ error: "Earned, pending, and withdraw must be numbers" });
         }
 
-        stat.earned = earnedNum;
+        stat.earned = earnedAvailableNum;
         stat.pending = pendingNum;
+        stat.withdraw = withdrawNum;
       }
 
       stat.updatedAt = new Date();

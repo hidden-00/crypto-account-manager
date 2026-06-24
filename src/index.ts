@@ -50,10 +50,6 @@ async function startServer() {
 
   app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
-    console.log(`\n📝 Test accounts:`);
-    console.log(`  john@example.com / password123`);
-    console.log(`  jane@example.com / password456`);
-    console.log(`  bob@example.com  / password789`);
   });
 }
 

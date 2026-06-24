@@ -6,14 +6,14 @@ import mongoose from "mongoose";
 const router = Router();
 
 /**
- * GET /api/account-stats - Lấy daily stats với aggregation
- * Query params: startDate, endDate (ISO format: 2025-01-01)
+ * GET /api/account-stats - Lấy daily stats cho 30 ngày gần nhất, kết thúc bằng hôm nay
  */
 
-function subtractOneDay(date: Date): Date {
-  const d = new Date(date); // clone, tránh mutate
-  d.setDate(d.getDate() - 1);
-  return d;
+function formatDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 router.get(
@@ -27,65 +27,56 @@ router.get(
       const startDateStr = req.query.startDate as string;
       const endDateStr = req.query.endDate as string;
 
-      let startDate: Date | undefined;
-      let endDate: Date | undefined;
-      let previousDate: Date | undefined;
+      const today = new Date();
+      const endDate = new Date(today);
+      endDate.setHours(23, 59, 59, 999);
 
-      if (startDateStr) {
-        startDate = new Date(startDateStr);
-        previousDate = subtractOneDay(startDate);
-        startDate = previousDate; // bắt đầu từ ngày trước đó để tính diff
-      }
-      if (endDateStr) {
-        endDate = new Date(endDateStr);
-        endDate.setHours(23, 59, 59, 999); // include entire day
-      }
+      const startDate = new Date(today);
+      startDate.setDate(today.getDate() - 29);
+      startDate.setHours(0, 0, 0, 0);
 
-      // Lấy accounts của user từ MongoDB với soft-delete
-      const accounts = await Account.find({ userId, deleted: false });
-      const accountIds = accounts.map((acc) => acc._id.toString());
-
-      // Tính tổng earned + pending từng ngày
       const dailyTotals: Record<
         string,
-        { date: Date; earned: number; pending: number; total: number }
+        { date: Date; earned: number; pending: number; withdraw: number; total: number }
       > = {};
 
-      for (const accountId of accountIds) {
-        // Query daily stats from MongoDB
-        const query: any = { accountId };
-        if (startDate) query.date = { ...query.date, $gte: startDate };
-        if (endDate) query.date = { ...query.date, $lte: endDate };
-
-        const stats = await DailyStats.find({ ...query, deleted: false });
-
-        for (const stat of stats) {
-          const dateKey = stat.date.toISOString().split("T")[0];
-
-          if (!dailyTotals[dateKey]) {
-            dailyTotals[dateKey] = {
-              date: stat.date,
-              earned: 0,
-              pending: 0,
-              total: 0,
-            };
-          }
-
-          dailyTotals[dateKey].earned += stat.earned;
-          dailyTotals[dateKey].pending += stat.pending;
-          dailyTotals[dateKey].total += stat.earned + stat.pending;
-        }
+      const cursor = new Date(startDate);
+      while (cursor <= endDate) {
+        const key = formatDateKey(cursor);
+        dailyTotals[key] = {
+          date: new Date(cursor),
+          earned: 0,
+          pending: 0,
+          withdraw: 0,
+          total: 0,
+        };
+        cursor.setDate(cursor.getDate() + 1);
       }
 
-      // Convert to array và sort by date
+      const stats = await DailyStats.find({
+        userId,
+        date: { $gte: startDate, $lte: endDate },
+        deleted: false,
+      }).sort({ date: 1 });
+
+      for (const stat of stats) {
+        const dateKey = formatDateKey(stat.date);
+        if (!dailyTotals[dateKey]) continue;
+
+        dailyTotals[dateKey].earned += Number(stat.earned || 0);
+        dailyTotals[dateKey].pending += Number(stat.pending || 0);
+        dailyTotals[dateKey].withdraw += Number(stat.withdraw || 0);
+        dailyTotals[dateKey].total += Number(stat.earned || 0) + Number(stat.pending || 0);
+      }
+
       const data = Object.values(dailyTotals).sort(
         (a, b) => a.date.getTime() - b.date.getTime()
       );
 
       return res.json({
-        accountsCount: accounts.length,
+        accountsCount: (await Account.countDocuments({ userId, deleted: false })),
         daysCount: data.length,
-        data: data,
+        data,
       });
     } catch (error) {
       console.error("Error fetching account stats:", error);

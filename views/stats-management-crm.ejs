@@ -624,7 +624,7 @@
                 <th>Date</th>
                 <th>Earned (USD)</th>
                 <th>Pending (USD)</th>
-                <th>Total (USD)</th>
+                <th>Withdraw (USD)</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -688,6 +688,17 @@
                 min="0"
                 placeholder="0.00"
                 required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="statWithdraw">Withdraw (USD)</label>
+              <input
+                type="number"
+                id="statWithdraw"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
               />
             </div>
 
@@ -780,7 +791,8 @@
 
           tbody.innerHTML = stats
             .map((stat) => {
-              const total = parseFloat(stat.earned || 0) + parseFloat(stat.pending || 0);
+              const earnedAvailable = parseFloat(stat.earned || 0);
+              const total = earnedAvailable + parseFloat(stat.pending || 0);
               const accountId = stat.accountId?._id || stat.accountId;
               const accountName = stat.accountId?.name || "Unknown";
               const date = new Date(stat.date).toLocaleDateString();
@@ -789,12 +801,12 @@
                 <tr>
                   <td>${accountName}</td>
                   <td>${date}</td>
-                  <td>$${parseFloat(stat.earned || 0).toFixed(2)}</td>
+                  <td>$${earnedAvailable.toFixed(2)}</td>
                   <td>$${parseFloat(stat.pending || 0).toFixed(2)}</td>
-                  <td><strong>$${total.toFixed(2)}</strong></td>
+                  <td>$${parseFloat(stat.withdraw || 0).toFixed(2)}</td>
                   <td>
                     <div class="stats-actions">
-                      <button class="action-btn edit-btn" onclick="editStat('${stat._id}', '${accountId}', '${stat.date}', ${stat.earned}, ${stat.pending})">
+                      <button class="action-btn edit-btn" onclick="editStat('${stat._id}', '${accountId}', '${stat.date}', ${earnedAvailable}, ${stat.pending}, ${stat.withdraw || 0})">
                         Edit
                       </button>
                       <button class="action-btn delete-btn" onclick="deleteStat('${stat._id}')">
@@ -840,12 +852,13 @@
       }
 
       // Edit stat
-      function editStat(statId, accountId, date, earned, pending) {
+      function editStat(statId, accountId, date, earnedAvailable, pending, withdraw) {
         document.getElementById("modalTitle").textContent = "Edit Stat";
         document.getElementById("statAccountId").value = accountId;
         document.getElementById("statDate").value = date.split("T")[0];
-        document.getElementById("statEarned").value = earned;
+        document.getElementById("statEarned").value = earnedAvailable;
         document.getElementById("statPending").value = pending;
+        document.getElementById("statWithdraw").value = withdraw;
         currentStatId = statId;
 
         const alert = document.getElementById("modalAlert");
@@ -863,6 +876,7 @@
         const date = document.getElementById("statDate").value;
         const earned = parseFloat(document.getElementById("statEarned").value);
         const pending = parseFloat(document.getElementById("statPending").value);
+        const withdraw = parseFloat(document.getElementById("statWithdraw").value) || 0;
         const alert = document.getElementById("modalAlert");
 
         try {
@@ -874,7 +888,7 @@
           const response = await fetch(url, {
             method: method,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ accountId, date, earned, pending }),
+            body: JSON.stringify({ accountId, date, earned, pending, withdraw }),
           });
 
           const result = await response.json();

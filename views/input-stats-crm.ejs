@@ -150,7 +150,7 @@
 
       .form-row {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 15px;
       }
 
@@ -378,7 +378,7 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label for="earnedInput">Earned (USD) *</label>
+              <label for="earnedInput">Earned Available (USD) *</label>
               <input
                 type="number"
                 id="earnedInput"
@@ -399,6 +399,16 @@
                 required
               />
             </div>
+            <div class="form-group">
+              <label for="withdrawInput">Withdraw (USD)</label>
+              <input
+                type="number"
+                id="withdrawInput"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+              />
+            </div>
           </div>
 
           <div class="stats-preview" id="preview" style="display: none">
@@ -412,7 +422,7 @@
               <span class="stats-value" id="previewDate">-</span>
             </div>
             <div class="stats-row">
-              <span class="stats-label">Earned:</span>
+              <span class="stats-label">Earned Available:</span>
               <span class="stats-value" id="previewEarned">$0.00</span>
             </div>
             <div class="stats-row">
@@ -420,7 +430,11 @@
               <span class="stats-value" id="previewPending">$0.00</span>
             </div>
             <div class="stats-row">
-              <span class="stats-label" style="font-size: 14px"><strong>Total:</strong></span>
+              <span class="stats-label">Withdraw:</span>
+              <span class="stats-value" id="previewWithdraw">$0.00</span>
+            </div>
+            <div class="stats-row">
+              <span class="stats-label" style="font-size: 14px"><strong>Remaining Earned:</strong></span>
               <span class="stats-value" style="font-size: 14px"><strong id="previewTotal">$0.00</strong></span>
             </div>
           </div>
@@ -441,6 +455,7 @@
       const dateInput = document.getElementById("dateInput");
       const earnedInput = document.getElementById("earnedInput");
       const pendingInput = document.getElementById("pendingInput");
+      const withdrawInput = document.getElementById("withdrawInput");
       const alertContainer = document.getElementById("alertContainer");
       const loading = document.getElementById("loading");
       const preview = document.getElementById("preview");
@@ -453,14 +468,16 @@
       function updatePreview() {
         const earned = parseFloat(earnedInput.value) || 0;
         const pending = parseFloat(pendingInput.value) || 0;
-        const total = earned + pending;
+        const withdraw = parseFloat(withdrawInput.value) || 0;
+        const remainingEarned = Math.max(0, earned - withdraw);
         const selectedOption = accountSelect.options[accountSelect.selectedIndex];
         const accountName = selectedOption.text || "-";
         const date = dateInput.value || "-";
 
         document.getElementById("previewEarned").textContent = "$" + earned.toFixed(2);
         document.getElementById("previewPending").textContent = "$" + pending.toFixed(2);
-        document.getElementById("previewTotal").textContent = "$" + total.toFixed(2);
+        document.getElementById("previewWithdraw").textContent = "$" + withdraw.toFixed(2);
+        document.getElementById("previewTotal").textContent = "$" + remainingEarned.toFixed(2);
         document.getElementById("previewAccount").textContent = accountName;
         document.getElementById("previewDate").textContent = date;
 
@@ -475,6 +492,7 @@
       dateInput.addEventListener("change", updatePreview);
       earnedInput.addEventListener("input", updatePreview);
       pendingInput.addEventListener("input", updatePreview);
+      withdrawInput.addEventListener("input", updatePreview);
 
       // Show alert
       function showAlert(message, type = "info") {
@@ -499,6 +517,7 @@
         const date = dateInput.value;
         const earned = parseFloat(earnedInput.value);
         const pending = parseFloat(pendingInput.value);
+        const withdraw = parseFloat(withdrawInput.value) || 0;
 
         if (!accountId || !date || isNaN(earned) || isNaN(pending)) {
           showAlert("Please fill all required fields", "error");
@@ -518,6 +537,7 @@
               date,
               earned,
               pending,
+              withdraw,
             }),
           });
 

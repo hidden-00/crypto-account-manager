@@ -989,12 +989,19 @@
         }
       }
 
+      function formatDateInput(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      }
+
       function initDefaultDates() {
         const endDate = new Date();
         const startDate = new Date();
-        startDate.setDate(startDate.getDate() - 30);
-        document.getElementById("startDate").valueAsDate = startDate;
-        document.getElementById("endDate").valueAsDate = endDate;
+        startDate.setDate(startDate.getDate() - 29);
+        document.getElementById("startDate").value = formatDateInput(startDate);
+        document.getElementById("endDate").value = formatDateInput(endDate);
       }
 
       async function loadChartData() {
@@ -1032,18 +1039,20 @@
         }
 
         const latestDay = data[data.length - 1];
-        const totalEarned = latestDay.earned;
-        const totalPending = latestDay.pending;
-        const totalAll = totalEarned + totalPending;
-        const totalActualReceived = totalAll * 0.8;
-        const avgDaily = totalAll / data.length;
+        const previousDay = data[data.length - 2] || { earned: 0, pending: 0, withdraw: 0 };
+        const totalEarned = Math.max(0, ((latestDay.earned || 0) + (latestDay.pending || 0) + (latestDay.withdraw || 0)) - ((previousDay.earned || 0) + (previousDay.pending || 0)));
+        const totalPending = Math.max(0, (latestDay.pending || 0) - (previousDay.pending || 0));
+        const totalWithdraw = Math.max(0, (latestDay.withdraw || 0) - (previousDay.withdraw || 0));
+        const totalBalance = totalEarned;
+        const totalActualReceived = totalBalance * 0.8;
+        const avgDaily = totalBalance / Math.max(1, data.length);
         const avgActualReceivedVND = (avgDaily * 0.8) * exchangeRate;
 
         const html = `
           <div class="section">
             <div class="stats-grid">
               <div class="stat-card">
-                <div class="stat-label">Total Earned</div>
+                <div class="stat-label">Total Earned Available</div>
                 <div class="stat-value">$${totalEarned.toFixed(2)}</div>
               </div>
               <div class="stat-card">
@@ -1051,8 +1060,12 @@
                 <div class="stat-value">$${totalPending.toFixed(2)}</div>
               </div>
               <div class="stat-card">
-                <div class="stat-label">Total (Earned + Pending)</div>
-                <div class="stat-value">$${totalAll.toFixed(2)}</div>
+                <div class="stat-label">Total Withdrawn</div>
+                <div class="stat-value">$${totalWithdraw.toFixed(2)}</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Total Balance</div>
+                <div class="stat-value">$${totalBalance.toFixed(2)}</div>
               </div>
               <div class="stat-card">
                 <div class="stat-label">Actual Received (80%)</div>
@@ -1073,11 +1086,15 @@
       }
 
       function updateChart(data) {
-        const labels = data.slice(1).map((d) => d.date.split("T")[0]);
-        const earnedData = data.slice(1).map((d) => d.earned);
-        const pendingData = data.slice(1).map((d) => d.pending);
-        const totalData = data.slice(1).map((d) => d.total);
-        const actualReceivedVNDData = data.slice(1).map((d) => (d.total * 0.8) * exchangeRate);
+        const labels = data.map((d) => d.date.split("T")[0]);
+        const earnedData = data.map((d) => d.earned || 0);
+        const pendingData = data.map((d) => d.pending || 0);
+        const withdrawData = data.map((d) => d.withdraw || 0);
+        const totalData = data.map((d, index) => {
+          const previous = data[index - 1] || { earned: 0, pending: 0, withdraw: 0 };
+          return Math.max(0, ((d.earned || 0) + (d.pending || 0) + (d.withdraw || 0)) - ((previous.earned || 0) + (previous.pending || 0)));
+        });
+        const actualReceivedVNDData = totalData.map((value) => (value * 0.8) * exchangeRate);
 
         const ctx = document.getElementById("statsChart").getContext("2d");
         if (chart) chart.destroy();
@@ -1112,7 +1129,19 @@
                 yAxisID: "y",
               },
               {
-                label: "Total (USD)",
+                label: "Withdrawn (USD)",
+                data: withdrawData,
+                borderColor: "#9c27b0",
+                backgroundColor: "rgba(156, 39, 176, 0.1)",
+                borderWidth: 2,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 4,
+                pointBackgroundColor: "#9c27b0",
+                yAxisID: "y",
+              },
+              {
+                label: "Total Balance (USD)",
                 data: totalData,
                 borderColor: "#2196f3",
                 backgroundColor: "rgba(33, 150, 243, 0.1)",
@@ -1189,27 +1218,17 @@
       }
 
       function updateDailyEarningsChart(data) {
-        const labels = data.slice(1).map((d) => d.date.split("T")[0]);
+        const visibleData = data;
+        const labels = visibleData.map((d) => d.date.split("T")[0]);
 
-        const dailyEarningsData = data.map((d, index) => {
-          const currentDate = new Date(d.date);
-          if (currentDate.getDate() === 1) return d.earned;
-          if (index === 0) return d.earned;
-          return d.earned - data[index - 1].earned;
+        const dailyEarningsData = visibleData.map((d) => Number(d.earned || 0));
+        const dailyPendingData = visibleData.map((d) => Number(d.pending || 0));
+        const dailyWithdrawData = visibleData.map((d) => Number(d.withdraw || 0));
+
+        const dailyTotalData = visibleData.map((d, index) => {
+          const previous = visibleData[index - 1] || { earned: 0, pending: 0, withdraw: 0 };
+          return Math.max(0, ((d.earned || 0) + (d.pending || 0) + (d.withdraw || 0)) - ((previous.earned || 0) + (previous.pending || 0)));
         });
-        dailyEarningsData.shift();
-
-        const dailyPendingData = data.map((d, index) => {
-          const currentDate = new Date(d.date);
-          if (currentDate.getDate() === 1) return d.pending;
-          if (index === 0) return d.pending;
-          return d.pending - data[index - 1].pending;
-        });
-        dailyPendingData.shift();
-
-        const dailyTotalData = dailyEarningsData.map(
-          (earned, index) => earned + dailyPendingData[index]
-        );
 
         const dailyActualReceivedVNDData = dailyTotalData.map(
           (total) => total * 0.8 * exchangeRate
@@ -1236,6 +1255,14 @@
                 data: dailyPendingData,
                 backgroundColor: "rgba(255, 152, 0, 0.7)",
                 borderColor: "#ff9800",
+                borderWidth: 1,
+                yAxisID: "y",
+              },
+              {
+                label: "Daily Withdrawn (USD)",
+                data: dailyWithdrawData,
+                backgroundColor: "rgba(156, 39, 176, 0.7)",
+                borderColor: "#9c27b0",
                 borderWidth: 1,
                 yAxisID: "y",
               },

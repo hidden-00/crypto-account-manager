@@ -29,6 +29,7 @@ export interface IDailyStats extends Document {
   date: Date;
   earned: number;
   pending: number;
+  withdraw: number;
   createdAt: Date;
   updatedAt?: Date;
   deleted: boolean;
@@ -122,6 +123,11 @@ const dailyStatsSchema = new Schema<IDailyStats>(
       default: 0,
     },
     pending: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    withdraw: {
       type: Number,
       required: true,
       default: 0,
