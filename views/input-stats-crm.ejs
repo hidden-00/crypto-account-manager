@@ -433,10 +433,6 @@
               <span class="stats-label">Withdraw:</span>
               <span class="stats-value" id="previewWithdraw">$0.00</span>
             </div>
-            <div class="stats-row">
-              <span class="stats-label" style="font-size: 14px"><strong>Remaining Earned:</strong></span>
-              <span class="stats-value" style="font-size: 14px"><strong id="previewTotal">$0.00</strong></span>
-            </div>
           </div>
 
           <div class="submit-group">
@@ -469,7 +465,6 @@
         const earned = parseFloat(earnedInput.value) || 0;
         const pending = parseFloat(pendingInput.value) || 0;
         const withdraw = parseFloat(withdrawInput.value) || 0;
-        const remainingEarned = Math.max(0, earned - withdraw);
         const selectedOption = accountSelect.options[accountSelect.selectedIndex];
         const accountName = selectedOption.text || "-";
         const date = dateInput.value || "-";
@@ -477,7 +472,6 @@
         document.getElementById("previewEarned").textContent = "$" + earned.toFixed(2);
         document.getElementById("previewPending").textContent = "$" + pending.toFixed(2);
         document.getElementById("previewWithdraw").textContent = "$" + withdraw.toFixed(2);
-        document.getElementById("previewTotal").textContent = "$" + remainingEarned.toFixed(2);
         document.getElementById("previewAccount").textContent = accountName;
         document.getElementById("previewDate").textContent = date;
 
