@@ -845,13 +845,6 @@
           <canvas id="statsChart"></canvas>
         </div>
       </div>
-
-      <div class="section chart-section">
-        <h2>💰 Daily Earnings</h2>
-        <div class="chart-container">
-          <canvas id="dailyEarningsChart"></canvas>
-        </div>
-      </div>
     </main>
 
     <!-- Account Modal -->
@@ -971,7 +964,6 @@
 
     <script>
       let chart = null;
-      let dailyChart = null;
       let exchangeRate = 25000;
 
       async function getExchangeRate() {
@@ -1022,7 +1014,6 @@
 
           const result = await response.json();
           updateChart(result.data);
-          updateDailyEarningsChart(result.data);
           updateStatsCards(result.data);
         } catch (error) {
           console.error("Error:", error);
@@ -1047,42 +1038,6 @@
         const totalActualReceived = totalBalance * 0.8;
         const avgDaily = totalBalance / Math.max(1, data.length);
         const avgActualReceivedVND = (avgDaily * 0.8) * exchangeRate;
-
-        const html = `
-          <div class="section">
-            <div class="stats-grid">
-              <div class="stat-card">
-                <div class="stat-label">Total Earned Available</div>
-                <div class="stat-value">$${totalEarned.toFixed(2)}</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-label">Total Pending</div>
-                <div class="stat-value">$${totalPending.toFixed(2)}</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-label">Total Withdrawn</div>
-                <div class="stat-value">$${totalWithdraw.toFixed(2)}</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-label">Total Balance</div>
-                <div class="stat-value">$${totalBalance.toFixed(2)}</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-label">Actual Received (80%)</div>
-                <div class="stat-value">$${totalActualReceived.toFixed(2)}</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-label">Avg Actual Daily (VND)</div>
-                <div class="stat-value">₫${avgActualReceivedVND.toLocaleString('vi-VN', {maximumFractionDigits: 0})}</div>
-              </div>
-              <div class="stat-card">
-                <div class="stat-label">Average Daily</div>
-                <div class="stat-value">$${avgDaily.toFixed(2)}</div>
-              </div>
-            </div>
-          </div>
-        `;
-        container.innerHTML = html;
       }
 
       function updateChart(data) {
@@ -1141,7 +1096,7 @@
                 yAxisID: "y",
               },
               {
-                label: "Total Balance (USD)",
+                label: "Daily Total (USD)",
                 data: totalData,
                 borderColor: "#2196f3",
                 backgroundColor: "rgba(33, 150, 243, 0.1)",
@@ -1153,7 +1108,7 @@
                 yAxisID: "y",
               },
               {
-                label: "Actual Received (VND)",
+                label: "Daily Actual Received (VND)",
                 data: actualReceivedVNDData,
                 borderColor: "#ff5722",
                 backgroundColor: "rgba(255, 87, 34, 0.1)",
@@ -1198,117 +1153,6 @@
                 display: true,
                 position: "right",
                 beginAtZero: true,
-                title: {
-                  display: true,
-                  text: "Amount (VND)",
-                },
-                grid: {
-                  drawOnChartArea: false,
-                },
-              },
-              x: {
-                title: {
-                  display: true,
-                  text: "Date",
-                },
-              },
-            },
-          },
-        });
-      }
-
-      function updateDailyEarningsChart(data) {
-        const visibleData = data;
-        const labels = visibleData.map((d) => d.date.split("T")[0]);
-
-        const dailyEarningsData = visibleData.map((d) => Number(d.earned || 0));
-        const dailyPendingData = visibleData.map((d) => Number(d.pending || 0));
-        const dailyWithdrawData = visibleData.map((d) => Number(d.withdraw || 0));
-
-        const dailyTotalData = visibleData.map((d, index) => {
-          const previous = visibleData[index - 1] || { earned: 0, pending: 0, withdraw: 0 };
-          return Math.max(0, ((d.earned || 0) + (d.pending || 0) + (d.withdraw || 0)) - ((previous.earned || 0) + (previous.pending || 0)));
-        });
-
-        const dailyActualReceivedVNDData = dailyTotalData.map(
-          (total) => total * 0.8 * exchangeRate
-        );
-
-        const ctx = document.getElementById("dailyEarningsChart").getContext("2d");
-        if (dailyChart) dailyChart.destroy();
-
-        dailyChart = new Chart(ctx, {
-          type: "bar",
-          data: {
-            labels: labels,
-            datasets: [
-              {
-                label: "Daily Earned (USD)",
-                data: dailyEarningsData,
-                backgroundColor: "rgba(76, 175, 80, 0.7)",
-                borderColor: "#4caf50",
-                borderWidth: 1,
-                yAxisID: "y",
-              },
-              {
-                label: "Daily Pending (USD)",
-                data: dailyPendingData,
-                backgroundColor: "rgba(255, 152, 0, 0.7)",
-                borderColor: "#ff9800",
-                borderWidth: 1,
-                yAxisID: "y",
-              },
-              {
-                label: "Daily Withdrawn (USD)",
-                data: dailyWithdrawData,
-                backgroundColor: "rgba(156, 39, 176, 0.7)",
-                borderColor: "#9c27b0",
-                borderWidth: 1,
-                yAxisID: "y",
-              },
-              {
-                label: "Daily Total (USD)",
-                data: dailyTotalData,
-                backgroundColor: "rgba(33, 150, 243, 0.7)",
-                borderColor: "#2196f3",
-                borderWidth: 1,
-                yAxisID: "y",
-              },
-              {
-                label: "Daily Actual Received (VND)",
-                data: dailyActualReceivedVNDData,
-                backgroundColor: "rgba(255, 87, 34, 0.7)",
-                borderColor: "#ff5722",
-                borderWidth: 1,
-                yAxisID: "y1",
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            indexAxis: "x",
-            plugins: {
-              legend: {
-                position: "top",
-                labels: {
-                  usePointStyle: true,
-                  padding: 15,
-                },
-              },
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-                position: "left",
-                title: {
-                  display: true,
-                  text: "Amount (USD)",
-                },
-              },
-              y1: {
-                beginAtZero: true,
-                position: "right",
                 title: {
                   display: true,
                   text: "Amount (VND)",

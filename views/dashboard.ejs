@@ -1278,13 +1278,6 @@
           <canvas id="statsChart"></canvas>
         </div>
       </div>
-
-      <div class="chart-section">
-        <h2>💰 Daily Earnings (Amount per Day)</h2>
-        <div class="chart-container">
-          <canvas id="dailyEarningsChart"></canvas>
-        </div>
-      </div>
     </main>
 
     <!-- Profile Edit Modal -->
@@ -1357,7 +1350,6 @@
 
     <script>
       let chart = null;
-      let dailyChart = null;
       let exchangeRate = 25000; // Default VND/USD rate
 
       // Fetch USD/VND exchange rate
@@ -1406,7 +1398,6 @@
 
           const result = await response.json();
           updateChart(result.data);
-          updateDailyEarningsChart(result.data);
           updateStatsCards(result.data);
         } catch (error) {
           console.error("Error:", error);
@@ -1444,11 +1435,11 @@
             <div class="value">$${totalPending.toFixed(2)}</div>
           </div>
           <div class="stat-card total">
-            <h3>Total (Earned + Pending)</h3>
+            <h3>Daily Total</h3>
             <div class="value">$${totalAll.toFixed(2)}</div>
           </div>
           <div class="stat-card" style="border-top-color: #9c27b0;">
-            <h3>Actual Received (80%)</h3>
+            <h3>Daily Actual Received</h3>
             <div class="value" style="color: #9c27b0;">$${totalActualReceived.toFixed(2)}</div>
           </div>
           <div class="stat-card" style="border-top-color: #ff5722;">
@@ -1515,7 +1506,7 @@
                 yAxisID: "y",
               },
               {
-                label: "Total (USD)",
+                label: "Daily Total (USD)",
                 data: totalData,
                 borderColor: "#2196f3",
                 backgroundColor: "rgba(33, 150, 243, 0.1)",
@@ -1527,7 +1518,7 @@
                 yAxisID: "y",
               },
               {
-                label: "Actual Received (VND)",
+                label: "Daily Actual Received (VND)",
                 data: actualReceivedVNDData,
                 borderColor: "#ff5722",
                 backgroundColor: "rgba(255, 87, 34, 0.1)",
@@ -1572,133 +1563,6 @@
                 display: true,
                 position: "right",
                 beginAtZero: true,
-                title: {
-                  display: true,
-                  text: "Amount (VND)",
-                },
-                grid: {
-                  drawOnChartArea: false,
-                },
-              },
-              x: {
-                title: {
-                  display: true,
-                  text: "Date",
-                },
-              },
-            },
-          },
-        });
-      }
-
-      // Update daily earnings chart
-      function updateDailyEarningsChart(data) {
-        const labels = data.map((d) => {
-          const date = new Date(d.date);
-          return date.toISOString().split("T")[0];
-        });
-
-        labels.shift(); // Remove first label (inaccurate)
-
-        const dailyEarningsData = data.map((d, index) => {
-          const currentDate = new Date(d.date);
-          if (currentDate.getDate() === 1) return d.earned;
-          if (index === 0) return d.earned; // First entry
-          return d.earned - data[index - 1].earned;
-        });
-
-        dailyEarningsData.shift();
-
-        const dailyPendingData = data.map((d, index) => {
-          const currentDate = new Date(d.date);
-
-          if (currentDate.getDate() === 1) return d.pending;
-          if (index === 0) return d.pending; // First entry
-          return d.pending - data[index - 1].pending;
-        });
-        dailyPendingData.shift(); // Remove first element (inaccurate)
-
-        const dailyTotalData = dailyEarningsData.map(
-          (earned, index) => earned + dailyPendingData[index]
-        );
-
-        // Calculate daily actual received VND (80% of daily total)
-        const dailyActualReceivedVNDData = dailyTotalData.map(
-          (total) => total * 0.8 * exchangeRate
-        );
-
-        const ctx = document
-          .getElementById("dailyEarningsChart")
-          .getContext("2d");
-
-        if (dailyChart) {
-          dailyChart.destroy();
-        }
-
-        dailyChart = new Chart(ctx, {
-          type: "bar",
-          data: {
-            labels: labels,
-            datasets: [
-              {
-                label: "Daily Earned (USD)",
-                data: dailyEarningsData,
-                backgroundColor: "rgba(76, 175, 80, 0.7)",
-                borderColor: "#4caf50",
-                borderWidth: 1,
-                yAxisID: "y",
-              },
-              {
-                label: "Daily Pending (USD)",
-                data: dailyPendingData,
-                backgroundColor: "rgba(255, 152, 0, 0.7)",
-                borderColor: "#ff9800",
-                borderWidth: 1,
-                yAxisID: "y",
-              },
-              {
-                label: "Daily Total (USD)",
-                data: dailyTotalData,
-                backgroundColor: "rgba(33, 150, 243, 0.7)",
-                borderColor: "#2196f3",
-                borderWidth: 1,
-                yAxisID: "y",
-              },
-              {
-                label: "Daily Actual Received (VND)",
-                data: dailyActualReceivedVNDData,
-                backgroundColor: "rgba(255, 87, 34, 0.7)",
-                borderColor: "#ff5722",
-                borderWidth: 1,
-                yAxisID: "y1",
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            indexAxis: "x",
-            plugins: {
-              legend: {
-                position: "top",
-                labels: {
-                  usePointStyle: true,
-                  padding: 15,
-                },
-              },
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-                position: "left",
-                title: {
-                  display: true,
-                  text: "Amount (USD)",
-                },
-              },
-              y1: {
-                beginAtZero: true,
-                position: "right",
                 title: {
                   display: true,
                   text: "Amount (VND)",

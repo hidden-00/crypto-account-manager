@@ -281,6 +281,94 @@
         background: #f9f9f9;
       }
 
+      .date-group-row td {
+        padding: 0;
+        border-bottom: none;
+      }
+
+      .date-group {
+        display: block;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        margin: 10px 12px;
+        overflow: hidden;
+      }
+
+      .date-group-summary {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        cursor: pointer;
+        list-style: none;
+        font-weight: 700;
+        color: #334155;
+      }
+
+      .date-group-summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .date-group-summary:hover {
+        background: #f1f5f9;
+      }
+
+      .date-group-summary-main {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .date-group-title {
+        font-size: 14px;
+        color: #0f172a;
+      }
+
+      .date-group-count {
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 600;
+      }
+
+      .date-group-metrics {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        font-size: 12px;
+        color: #475569;
+      }
+
+      .date-group-body {
+        padding: 0 12px 12px;
+      }
+
+      .inner-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .inner-table th {
+        background: #eef2ff;
+        color: #4338ca;
+        font-size: 11px;
+        padding: 10px 12px;
+        text-transform: uppercase;
+      }
+
+      .inner-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      .inner-table tr:last-child td {
+        border-bottom: none;
+      }
+
       .stats-actions {
         display: flex;
         gap: 8px;
@@ -746,6 +834,32 @@
         });
       });
 
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function formatCurrency(value) {
+        return `$${parseFloat(value || 0).toFixed(2)}`;
+      }
+
+      function formatDateLabel(dateValue) {
+        if (!dateValue) {
+          return "Unknown date";
+        }
+
+        const parsedDate = new Date(dateValue);
+        if (Number.isNaN(parsedDate.getTime())) {
+          return dateValue;
+        }
+
+        return parsedDate.toLocaleDateString();
+      }
+
       // Load and display stats
       async function loadStats() {
         const accountId = document.getElementById("accountFilter").value;
@@ -789,30 +903,97 @@
             return;
           }
 
-          tbody.innerHTML = stats
-            .map((stat) => {
-              const earnedAvailable = parseFloat(stat.earned || 0);
-              const total = earnedAvailable + parseFloat(stat.pending || 0);
-              const accountId = stat.accountId?._id || stat.accountId;
-              const accountName = stat.accountId?.name || "Unknown";
-              const date = new Date(stat.date).toLocaleDateString();
+          const groupedStats = stats.reduce((groups, stat) => {
+            const key = stat.date ? stat.date.split("T")[0] : "unknown";
+            if (!groups[key]) {
+              groups[key] = [];
+            }
+            groups[key].push(stat);
+            return groups;
+          }, {});
+
+          const sortedDates = Object.keys(groupedStats).sort((a, b) => b.localeCompare(a));
+
+          tbody.innerHTML = sortedDates
+            .map((dateKey) => {
+              const dayStats = groupedStats[dateKey].sort((a, b) => {
+                const nameA = a.accountId?.name || "Unknown";
+                const nameB = b.accountId?.name || "Unknown";
+                return nameA.localeCompare(nameB);
+              });
+
+              const earnedTotal = dayStats.reduce(
+                (sum, stat) => sum + parseFloat(stat.earned || 0),
+                0
+              );
+              const pendingTotal = dayStats.reduce(
+                (sum, stat) => sum + parseFloat(stat.pending || 0),
+                0
+              );
+              const withdrawTotal = dayStats.reduce(
+                (sum, stat) => sum + parseFloat(stat.withdraw || 0),
+                0
+              );
+
+              const rowsHtml = dayStats
+                .map((stat) => {
+                  const earnedAvailable = parseFloat(stat.earned || 0);
+                  const accountId = stat.accountId?._id || stat.accountId;
+                  const accountName = stat.accountId?.name || "Unknown";
+
+                  return `
+                    <tr>
+                      <td>${escapeHtml(accountName)}</td>
+                      <td>${escapeHtml(formatDateLabel(stat.date))}</td>
+                      <td>${formatCurrency(earnedAvailable)}</td>
+                      <td>${formatCurrency(parseFloat(stat.pending || 0))}</td>
+                      <td>${formatCurrency(parseFloat(stat.withdraw || 0))}</td>
+                      <td>
+                        <div class="stats-actions">
+                          <button class="action-btn edit-btn" onclick="editStat('${stat._id}', '${accountId}', '${stat.date}', ${earnedAvailable}, ${stat.pending}, ${stat.withdraw || 0})">
+                            Edit
+                          </button>
+                          <button class="action-btn delete-btn" onclick="deleteStat('${stat._id}')">
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  `;
+                })
+                .join("");
 
               return `
-                <tr>
-                  <td>${accountName}</td>
-                  <td>${date}</td>
-                  <td>$${earnedAvailable.toFixed(2)}</td>
-                  <td>$${parseFloat(stat.pending || 0).toFixed(2)}</td>
-                  <td>$${parseFloat(stat.withdraw || 0).toFixed(2)}</td>
-                  <td>
-                    <div class="stats-actions">
-                      <button class="action-btn edit-btn" onclick="editStat('${stat._id}', '${accountId}', '${stat.date}', ${earnedAvailable}, ${stat.pending}, ${stat.withdraw || 0})">
-                        Edit
-                      </button>
-                      <button class="action-btn delete-btn" onclick="deleteStat('${stat._id}')">
-                        Delete
-                      </button>
-                    </div>
+                <tr class="date-group-row">
+                  <td colspan="6">
+                    <details class="date-group" open>
+                      <summary class="date-group-summary">
+                        <div class="date-group-summary-main">
+                          <span class="date-group-title">${escapeHtml(formatDateLabel(dateKey))}</span>
+                          <span class="date-group-count">${dayStats.length} record${dayStats.length > 1 ? "s" : ""}</span>
+                        </div>
+                        <div class="date-group-metrics">
+                          <span>Earned: ${formatCurrency(earnedTotal)}</span>
+                          <span>Pending: ${formatCurrency(pendingTotal)}</span>
+                          <span>Withdraw: ${formatCurrency(withdrawTotal)}</span>
+                        </div>
+                      </summary>
+                      <div class="date-group-body">
+                        <table class="inner-table">
+                          <thead>
+                            <tr>
+                              <th>Account</th>
+                              <th>Date</th>
+                              <th>Earned</th>
+                              <th>Pending</th>
+                              <th>Withdraw</th>
+                              <th>Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>${rowsHtml}</tbody>
+                        </table>
+                      </div>
+                    </details>
                   </td>
                 </tr>
               `;
