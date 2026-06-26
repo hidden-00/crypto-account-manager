@@ -761,7 +761,6 @@
         <nav>
           <a href="/dashboard">Dashboard</a>
           <a href="/stats">Manage Stats</a>
-          <a href="/input-stats">Input Stats</a>
         </nav>
         <div class="user-info">
           <span><%= user.name %></span>
@@ -798,6 +797,14 @@
               <%= new Date(user.createdAt).toLocaleDateString() %>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="section chart-section">
+        <h2>📈 Daily Cash Flow</h2>
+        <div class="chart-container">
+          <canvas id="statsChart"></canvas>
         </div>
       </div>
 
@@ -838,13 +845,7 @@
         <div id="accounts-container" class="accounts-grid"></div>
       </div>
 
-      <!-- Charts Section -->
-      <div class="section chart-section">
-        <h2>📈 Daily Cash Flow</h2>
-        <div class="chart-container">
-          <canvas id="statsChart"></canvas>
-        </div>
-      </div>
+      
     </main>
 
     <!-- Account Modal -->

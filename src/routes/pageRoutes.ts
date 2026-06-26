@@ -84,29 +84,4 @@ router.get("/stats", authMiddleware, async (req: Request, res: Response) => {
   }
 });
 
-/**
- * GET /input-stats - quick input stats page (requires auth)
- */
-router.get("/input-stats", authMiddleware, async (req: Request, res: Response) => {
-  const userId = req.user!.id;
-
-  try {
-    // Get all user's accounts
-    const accounts = await Account.find({ userId: userId, deleted: false }).sort({
-      createdAt: -1,
-    });
-
-    // Format accounts data for the form
-    const accountsData = accounts.map((acc) => ({
-      id: acc._id.toString(),
-      name: acc.name,
-    }));
-
-    res.render("input-stats-crm", { user: req.user, accounts: accountsData });
-  } catch (error) {
-    console.error("Error fetching accounts:", error);
-    res.status(500).render("404", { message: "Server error" });
-  }
-});
-
 export default router;
