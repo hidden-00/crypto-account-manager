@@ -121,9 +121,14 @@ export async function restoreUserFromCookie(
   res: Response,
   next: NextFunction
 ) {
-  const sessionId = req.cookies.sessionId;
+  const sessionId =
+    (req.cookies.sessionId as string | undefined) ||
+    (Array.isArray(req.headers["x-session-id"])
+      ? req.headers["x-session-id"][0]
+      : (req.headers["x-session-id"] as string | undefined));
+
   const session = await getSession(sessionId, req);
-  
+
   if (session) {
     const user = await findUserById(session.userId.toString());
     if (user) {

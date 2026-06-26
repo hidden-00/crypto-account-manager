@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "Mike Mobile",
+    "slug": "mike-mobile",
+    "platforms": ["ios", "android", "web"],
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {}
+  }
+}

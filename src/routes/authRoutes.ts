@@ -65,6 +65,81 @@ router.post("/login", async (req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/auth/login - JSON login endpoint for mobile apps
+ */
+router.post("/api/auth/login", async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    const sessionId = await createSession(user._id.toString(), req);
+    const cookieOpts = {
+      httpOnly: true,
+      secure: req.secure || process.env.NODE_ENV === "production",
+      sameSite: "lax" as const,
+      maxAge: 24 * 60 * 60 * 1000,
+    };
+    res.cookie("sessionId", sessionId, cookieOpts);
+
+    return res.json({
+      success: true,
+      user: {
+        id: user._id.toString(),
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        createdAt: user.createdAt,
+      },
+      sessionId,
+    });
+  } catch (error) {
+    console.error("Mobile login error:", error);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+/**
+ * GET /api/auth/me - current user info for mobile apps
+ */
+router.get("/api/auth/me", (req: Request, res: Response) => {
+  if (!req.user) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  return res.json({ user: req.user });
+});
+
+/**
+ * POST /api/auth/logout - logout for mobile apps
+ */
+router.post("/api/auth/logout", async (req: Request, res: Response) => {
+  const sessionId =
+    (req.cookies.sessionId as string | undefined) ||
+    (Array.isArray(req.headers["x-session-id"])
+      ? req.headers["x-session-id"][0]
+      : (req.headers["x-session-id"] as string | undefined));
+
+  await destroySession(sessionId);
+  res.clearCookie("sessionId");
+  req.user = undefined;
+
+  return res.json({ success: true });
+});
+
+/**
  * POST /logout - logout user
  */
 router.post("/logout", async (req: Request, res: Response) => {

@@ -9,6 +9,7 @@
     "dev": "ts-node-dev --exit-child --transpile-only src/index.ts"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^3.1.1",
     "bcrypt": "^6.0.0",
     "chart.js": "^4.5.1",
     "cookie-parser": "^1.4.7",
