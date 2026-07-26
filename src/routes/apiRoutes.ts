@@ -23,16 +23,12 @@ router.get(
     try {
       const userId = req.user!.id;
 
-      // Lấy query params
-      const startDateStr = req.query.startDate as string;
-      const endDateStr = req.query.endDate as string;
-
       const today = new Date();
       const endDate = new Date(today);
       endDate.setHours(23, 59, 59, 999);
 
       const startDate = new Date(today);
-      startDate.setDate(today.getDate() - 29);
+      startDate.setDate(today.getDate() - 30);
       startDate.setHours(0, 0, 0, 0);
 
       const dailyTotals: Record<
