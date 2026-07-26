@@ -1043,14 +1043,20 @@
 
       function updateChart(data) {
         const labels = data.map((d) => d.date.split("T")[0]);
+        labels.shift(); // Remove the first label to align with the data points
         const earnedData = data.map((d) => d.earned || 0);
+        earnedData.shift(); // Remove the first element to avoid double counting
         const pendingData = data.map((d) => d.pending || 0);
+        pendingData.shift(); // Remove the first element to avoid double counting
         const withdrawData = data.map((d) => d.withdraw || 0);
+        withdrawData.shift(); // Remove the first element to avoid double counting
         const totalData = data.map((d, index) => {
           const previous = data[index - 1] || { earned: 0, pending: 0, withdraw: 0 };
           return Math.max(0, ((d.earned || 0) + (d.pending || 0) + (d.withdraw || 0)) - ((previous.earned || 0) + (previous.pending || 0)));
         });
         const actualReceivedVNDData = totalData.map((value) => (value * 0.8) * exchangeRate);
+        totalData.shift(); // Remove the first element to avoid double counting
+        actualReceivedVNDData.shift(); // Remove the first element to avoid double counting
 
         const ctx = document.getElementById("statsChart").getContext("2d");
         if (chart) chart.destroy();
